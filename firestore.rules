@@ -5,7 +5,8 @@ service cloud.firestore {
   match /databases/{db}/documents {
     match /people/{id} {
       function levels(e) {
-        return e.keys().hasOnly(['at','sickness','sleep','stress','affection'])
+        return e.keys().hasOnly(['at','sickness','sleep','stress','affection','wishes'])
+          && (!('wishes' in e) || (e.wishes is list && e.wishes.size() <= 3))
           && e.sickness is int && e.sickness >= 0 && e.sickness <= 100
           && e.sleep is int && e.sleep >= 0 && e.sleep <= 100
           && e.stress is int && e.stress >= 0 && e.stress <= 100

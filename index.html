@@ -1,29 +1,62 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-scheme="sage" data-look="soft" data-layout="side">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1d2220" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f1ea" id="theme-color">
 <title>Kindred</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<script>
+  // Apply saved look before the page paints.
+  (function () {
+    var d = document.documentElement;
+    try {
+      d.dataset.scheme = localStorage.getItem('kindred.scheme') || 'sage';
+      d.dataset.look = localStorage.getItem('kindred.look') || 'soft';
+      d.dataset.layout = localStorage.getItem('kindred.layout') || 'side';
+    } catch (e) {}
+  })();
+</script>
 <style>
-:root {
+/* ---------- colour schemes ---------- */
+:root, [data-scheme=sage] {
   --bg: #f4f1ea; --card: #fbf9f5; --ink: #39403d; --soft: #7c8480; --line: #e4dfd5;
   --track: #ebe6dc; --good: #7f9f89; --mid: #cdb68a; --low: #c98d70; --aff: #9d93bd;
   --btn: #5f7c6b; --btn-ink: #fff; --shadow: 0 1px 2px rgba(60,55,40,.05), 0 8px 24px rgba(60,55,40,.06);
 }
-@media (prefers-color-scheme: dark) {
-  :root { --bg: #1d2220; --card: #252b29; --ink: #e3e6e2; --soft: #98a09c; --line: #323a37;
-    --track: #313936; --good: #86a891; --mid: #c4ad80; --low: #c68a6e; --aff: #a69dc6;
-    --btn: #86a891; --btn-ink: #1d2220; --shadow: none; }
+[data-scheme=ocean] {
+  --bg: #eef3f5; --card: #f9fbfc; --ink: #2f3e46; --soft: #74858e; --line: #dbe5ea;
+  --track: #e2eaee; --good: #5f9ea0; --mid: #a9bfcf; --low: #d08a7b; --aff: #7b8fc4;
+  --btn: #3f7488; --btn-ink: #fff; --shadow: 0 1px 2px rgba(30,50,60,.05), 0 8px 24px rgba(30,50,60,.07);
 }
+[data-scheme=dusk] {
+  --bg: #f3efe9; --card: #fbf8f4; --ink: #3e3a43; --soft: #827b87; --line: #e6dfd7;
+  --track: #ece5dc; --good: #8c8fb8; --mid: #d7a86e; --low: #c27c7c; --aff: #b58bb0;
+  --btn: #6d6a99; --btn-ink: #fff; --shadow: 0 1px 2px rgba(50,40,60,.05), 0 8px 24px rgba(50,40,60,.07);
+}
+[data-scheme=sweetheart] {
+  --bg: #fdf0f2; --card: #fff8f9; --ink: #4a2c34; --soft: #9a7480; --line: #f5d9df;
+  --track: #f8e1e6; --good: #e46f8c; --mid: #f2ad8f; --low: #9b5a86; --aff: #d94a6e;
+  --btn: #d9557a; --btn-ink: #fff; --shadow: 0 1px 2px rgba(120,40,60,.06), 0 8px 24px rgba(200,80,110,.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root, [data-scheme=sage] { --bg: #1d2220; --card: #252b29; --ink: #e3e6e2; --soft: #98a09c; --line: #323a37;
+    --track: #313936; --good: #86a891; --mid: #c4ad80; --low: #c68a6e; --aff: #a69dc6; --btn: #86a891; --btn-ink: #1d2220; --shadow: none; }
+  [data-scheme=ocean] { --bg: #172126; --card: #1f2c32; --ink: #e1e9ec; --soft: #91a3ab; --line: #2c3b42;
+    --track: #2b3a41; --good: #6fb1b2; --mid: #9db5c6; --low: #d28f80; --aff: #8c9fd1; --btn: #6fb1b2; --btn-ink: #172126; --shadow: none; }
+  [data-scheme=dusk] { --bg: #1f1c24; --card: #2a2630; --ink: #e8e3ec; --soft: #a59eab; --line: #38333f;
+    --track: #37313e; --good: #9ea1cc; --mid: #d9ad76; --low: #c98585; --aff: #c59bc0; --btn: #9ea1cc; --btn-ink: #1f1c24; --shadow: none; }
+  [data-scheme=sweetheart] { --bg: #26181d; --card: #331f26; --ink: #f6e4e9; --soft: #c09aa5; --line: #46303a;
+    --track: #452c36; --good: #ef8aa3; --mid: #f2b598; --low: #b67aa3; --aff: #f06c8f; --btn: #ef8aa3; --btn-ink: #26181d; --shadow: none; }
+}
+
+/* ---------- base ---------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; background: var(--bg); color: var(--ink); }
+html, body { margin: 0; background: var(--bg); color: var(--ink); transition: background .4s, color .4s; }
 body { font: 16px/1.45 ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   min-height: 100dvh; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
-main { max-width: 480px; margin: 0 auto; padding: 20px 16px 120px; }
+main { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 20px 16px 130px; }
 h1 { font-size: 26px; font-weight: 600; letter-spacing: -.01em; margin: 24px 0 4px; }
 h2 { font-size: 20px; font-weight: 600; margin: 0 0 6px; }
 p.sub { color: var(--soft); margin: 0 0 24px; }
@@ -34,14 +67,15 @@ p.sub { color: var(--soft); margin: 0 0 24px; }
 input[type=text] { width: 100%; font: inherit; font-size: 18px; padding: 14px 16px; border-radius: 14px;
   border: 1px solid var(--line); background: var(--card); color: var(--ink); outline: none; }
 input[type=text]:focus { border-color: var(--good); }
-button { font: inherit; cursor: pointer; border: 0; }
+button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 .primary { width: 100%; margin-top: 14px; padding: 15px; border-radius: 14px; background: var(--btn); color: var(--btn-ink);
   font-weight: 600; font-size: 17px; transition: opacity .2s, transform .1s; }
 .primary:active { transform: scale(.98); }
 .primary:disabled { opacity: .45; cursor: default; }
 .ghost { background: none; color: var(--soft); padding: 10px; font-size: 15px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.chip { padding: 9px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--ink); }
+.chip { padding: 9px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--ink); font-size: 15px; }
+.chip.sel { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
 .label { color: var(--soft); font-size: 13px; margin-top: 28px; }
 .list { display: grid; gap: 10px; }
 .list button { text-align: left; padding: 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line);
@@ -50,17 +84,17 @@ button { font: inherit; cursor: pointer; border: 0; }
 .empty { color: var(--soft); background: var(--card); border: 1px dashed var(--line); border-radius: 14px; padding: 18px; }
 .err { color: var(--low); min-height: 22px; margin-top: 8px; font-size: 14px; }
 
-/* home */
+/* ---------- home ---------- */
 .top { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 18px; }
 .top .brand { font-weight: 600; font-size: 18px; letter-spacing: .01em; }
 .icon-btn { background: none; color: var(--soft); width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; }
 .icon-btn:active { background: var(--track); }
 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.who { background: var(--card); border-radius: 18px; padding: 14px 14px 12px; box-shadow: var(--shadow); }
+.who { background: var(--card); border-radius: 18px; padding: 14px 14px 12px; box-shadow: var(--shadow); min-width: 0; }
 .who .name { font-weight: 600; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .who .when { color: var(--soft); font-size: 12.5px; margin-bottom: 6px; }
-.who.stale .metric { opacity: .55; }
-.metric { padding: 10px 0 4px; transition: opacity .3s; }
+.who.stale .metric, .who.stale .wishes { opacity: .55; }
+.metric { padding: 10px 0 4px; transition: opacity .3s; min-width: 0; }
 .metric + .metric { border-top: 1px solid var(--line); }
 .metric .row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
 .metric .k { font-size: 12px; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; }
@@ -68,20 +102,77 @@ button { font: inherit; cursor: pointer; border: 0; }
 .metric .word { font-size: 15px; margin: 1px 0 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar { height: 6px; border-radius: 6px; background: var(--track); overflow: hidden; }
 .bar i { display: block; height: 100%; border-radius: 6px; transition: width .8s cubic-bezier(.2,.8,.2,1), background .8s; }
+.hearts { display: none; gap: 3px; }
+.hearts span { position: relative; width: 17px; height: 15px; flex: none; }
+.hearts svg { position: absolute; inset: 0; width: 17px; height: 15px; }
+.hearts .fill { position: absolute; inset: 0 auto 0 0; overflow: hidden; }
+.wishes { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 8px; }
+.wishes .k { font-size: 12px; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.wishes .wish { display: inline-block; font-size: 14px; padding: 5px 10px; border-radius: 999px; margin: 0 4px 5px 0;
+  background: color-mix(in srgb, var(--aff) 16%, var(--card)); color: var(--ink); }
 .nothing { color: var(--soft); font-size: 14px; padding: 18px 0 10px; }
 .note { color: var(--soft); font-size: 13.5px; text-align: center; margin: 16px 8px 0; }
 
-.dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+/* top and bottom layout */
+[data-layout=stacked] .cols { grid-template-columns: 1fr; gap: 12px; }
+[data-layout=stacked] .metrics { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; }
+[data-layout=stacked] .metric + .metric { border-top: 0; }
+[data-layout=stacked] .who .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+
+.dock { position: fixed; z-index: 2; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
   background: linear-gradient(to top, var(--bg) 70%, transparent); }
 .dock > div { max-width: 448px; margin: 0 auto; }
 .dock .primary { margin: 0; }
 .wait { text-align: center; color: var(--soft); font-size: 14px; padding: 14px; border-radius: 14px; background: var(--card); }
 
-/* sheets */
+/* ---------- styles (look and feel) ---------- */
+/* Minimal: flat, airy, hairline bars */
+[data-look=minimal] body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+[data-look=minimal] .who { background: transparent; box-shadow: none; border-radius: 0; padding: 6px 2px; border-top: 2px solid var(--ink); }
+[data-look=minimal] .metric .k, [data-look=minimal] .wishes .k { text-transform: none; letter-spacing: 0; font-size: 13px; }
+[data-look=minimal] .metric + .metric { border-top-color: transparent; }
+[data-look=minimal] .bar { height: 3px; border-radius: 0; }
+[data-look=minimal] .bar i { border-radius: 0; }
+[data-look=minimal] .primary, [data-look=minimal] .wait, [data-look=minimal] .slider,
+[data-look=minimal] .list button, [data-look=minimal] input[type=text] { border-radius: 8px; }
+[data-look=minimal] .wishes .wish { background: transparent; border: 1px solid var(--line); }
+
+/* Bold: big numbers, chunky bars */
+[data-look=bold] .who { border-radius: 22px; padding: 16px; }
+[data-look=bold] .who .name { font-size: 21px; font-weight: 700; }
+[data-look=bold] .metric .row { align-items: center; }
+[data-look=bold] .metric .k { font-weight: 600; color: var(--ink); }
+[data-look=bold] .metric .v { font-size: 26px; font-weight: 700; color: var(--ink); line-height: 1.1; }
+[data-look=bold] .metric .word { font-size: 14px; color: var(--soft); }
+[data-look=bold] .bar { height: 12px; border-radius: 12px; }
+[data-look=bold] .bar i { border-radius: 12px; }
+[data-look=bold] .primary { font-size: 18px; padding: 17px; border-radius: 18px; }
+
+/* Love hearts: heart meters, script names, drifting hearts */
+[data-look=hearts] body { font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, sans-serif; }
+[data-look=hearts] .brand, [data-look=hearts] .who .name, [data-look=hearts] h1, [data-look=hearts] h2 {
+  font-family: "Snell Roundhand", "Segoe Script", "Brush Script MT", Georgia, cursive; font-weight: 600; font-style: italic; }
+[data-look=hearts] .who .name { font-size: 22px; }
+[data-look=hearts] .brand { font-size: 24px; }
+[data-look=hearts] .brand::after { content: " \2665"; color: var(--aff); font-style: normal; }
+[data-look=hearts] .who { border-radius: 26px; border: 1.5px solid color-mix(in srgb, var(--aff) 30%, transparent); position: relative; }
+[data-look=hearts] .who::after { content: "\2665"; position: absolute; bottom: 10px; right: 14px; color: var(--aff); opacity: .35; font-size: 16px; }
+[data-look=hearts] .bar { display: none; }
+[data-look=hearts] .hearts { display: flex; }
+[data-look=hearts] .metric .k { text-transform: none; letter-spacing: 0; font-size: 13px; }
+[data-look=hearts] .primary { border-radius: 999px; }
+[data-look=hearts] .primary::before { content: "\2665  "; }
+#love { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; display: none; }
+[data-look=hearts] #love { display: block; }
+#love span { position: absolute; bottom: -40px; color: var(--aff); opacity: .13; animation: drift linear infinite; }
+@keyframes drift { to { transform: translateY(-115vh) rotate(25deg); } }
+@media (prefers-reduced-motion: reduce) { #love span { animation: none; bottom: auto; } .screen { animation: none; } }
+
+/* ---------- sheets ---------- */
 .scrim { position: fixed; inset: 0; background: rgba(20,25,22,.28); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 5; }
 .scrim.on { opacity: 1; pointer-events: auto; }
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--bg); border-radius: 22px 22px 0 0;
-  padding: 10px 16px calc(18px + env(safe-area-inset-bottom)); max-height: 92dvh; overflow: auto;
+  padding: 10px 16px calc(18px + env(safe-area-inset-bottom)); max-height: 92dvh; overflow: auto; overscroll-behavior: contain;
   transform: translateY(105%); transition: transform .38s cubic-bezier(.2,.8,.2,1); }
 .sheet.on { transform: none; }
 .sheet > div { max-width: 448px; margin: 0 auto; }
@@ -98,9 +189,31 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px;
   background: var(--card); border: 3px solid var(--c, var(--good)); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
 input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--card);
   border: 3px solid var(--c, var(--good)); }
+
+/* wishes picker */
+.wish-box { background: var(--card); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
+.wish-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; background: none; padding: 0; text-align: left; }
+.wish-toggle .k { font-weight: 600; }
+.wish-toggle .hint { color: var(--soft); font-size: 14px; }
+.wish-body { display: none; padding-top: 8px; }
+.wish-box.open .wish-body { display: block; }
+.wish-group { color: var(--soft); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 0; }
+.wish-own { display: flex; gap: 8px; margin-top: 14px; }
+.wish-own input { font-size: 15px; padding: 10px 12px; }
+.wish-own button { padding: 0 14px; border-radius: 12px; background: var(--track); color: var(--ink); flex: none; }
+
+/* settings pickers */
+.picker { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.picker button { padding: 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); text-align: left; font-size: 15px; }
+.picker button.sel { border-color: var(--btn); box-shadow: inset 0 0 0 1.5px var(--btn); }
+.picker .sw { display: flex; gap: 4px; margin-bottom: 6px; }
+.picker .sw i { width: 16px; height: 16px; border-radius: 50%; display: block; }
+.picker .desc { display: block; color: var(--soft); font-size: 12.5px; margin-top: 2px; }
+.version { color: var(--soft); font-size: 12px; text-align: center; margin-top: 18px; }
 </style>
 </head>
 <body>
+<div id="love" aria-hidden="true"></div>
 <main>
 
   <!-- 1. Name -->
@@ -154,7 +267,15 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
   <h2>How are you right now?</h2>
   <p class="sub" style="margin-bottom:14px">Just a rough feel. Your partner will see these.</p>
   <div id="sliders"></div>
+  <div class="wish-box" id="wish-box">
+    <button class="wish-toggle" id="wish-toggle" type="button">
+      <span><span class="k">Add a wish</span><br><span class="hint" id="wish-hint">Optional. Something you'd love right now.</span></span>
+      <span class="hint" id="wish-plus">+</span>
+    </button>
+    <div class="wish-body" id="wish-body"></div>
+  </div>
   <button class="primary" id="checkin-save">Share</button>
+  <button class="ghost" id="checkin-cancel" style="width:100%;margin-top:4px">Not now</button>
   <div class="err" id="checkin-err"></div>
 </div></div>
 
@@ -164,7 +285,15 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
   <h2 id="settings-title">Settings</h2>
   <div class="label" style="margin-top:14px">Partner</div>
   <div class="list" id="settings-partners" style="margin-top:8px"></div>
-  <button class="ghost" id="sign-out" style="margin-top:18px">Not you? Switch name</button>
+  <div class="label">Colours</div>
+  <div class="picker" id="pick-scheme"></div>
+  <div class="label">Style</div>
+  <div class="picker" id="pick-look"></div>
+  <div class="label">Compare</div>
+  <div class="picker" id="pick-layout"></div>
+  <button class="primary" id="settings-done" style="margin-top:24px">Done</button>
+  <button class="ghost" id="sign-out" style="margin-top:8px;width:100%">Not you? Switch name</button>
+  <div class="version">Kindred v2</div>
 </div></div>
 
 <script type="module">
@@ -181,6 +310,30 @@ const METRICS = [
   { id: 'affection', label: 'Affection', good: null, ends: ['Need space', 'Want closeness'], start: 50,
     words: [[20, 'Need some space'], [45, 'Low key'], [70, 'Open to closeness'], [100, 'Wanting closeness']] },
 ];
+const WISHES = {
+  'Closeness': ['🤗 A hug', '🫂 Lots of hugs', '💋 Kisses', '🛋️ Couch cuddles', '🤝 Hold hands', '🔥 Sexy times', '💆 A back rub', '🦶 A foot rub'],
+  'Treats': ['🍫 Something delicious', '🍰 Something sweet', '☕ A cuppa made for me', '🍕 Takeaway tonight', '🍳 You cook tonight', '🛁 A long bath'],
+  'Care': ['👂 Just listen', '💬 Talk it through', '💌 Kind words', '🧸 Be gentle with me', '🧺 Help with chores', '🤫 Quiet time alone', '😴 A nap', '🌙 An early night'],
+  'Together': ['🚶 A walk together', '🌳 Time outside', '🎬 A movie together', '🎲 Play a game', '🌹 Date night', '😂 Make me laugh', '🎶 Dance in the kitchen'],
+};
+const MAX_WISHES = 3;
+const SCHEMES = [
+  { id: 'sage', name: 'Sage', desc: 'Soft greens', sw: ['#7f9f89', '#cdb68a', '#c98d70'] },
+  { id: 'ocean', name: 'Ocean', desc: 'Cool blues', sw: ['#5f9ea0', '#a9bfcf', '#7b8fc4'] },
+  { id: 'dusk', name: 'Dusk', desc: 'Lavender and amber', sw: ['#8c8fb8', '#d7a86e', '#b58bb0'] },
+  { id: 'sweetheart', name: 'Sweetheart', desc: 'Pinks and roses', sw: ['#e46f8c', '#f2ad8f', '#d94a6e'] },
+];
+const LOOKS = [
+  { id: 'soft', name: 'Soft', desc: 'Rounded cards' },
+  { id: 'minimal', name: 'Minimal', desc: 'Flat and airy' },
+  { id: 'bold', name: 'Bold', desc: 'Big numbers' },
+  { id: 'hearts', name: 'Love hearts', desc: 'Heart meters ♥' },
+];
+const LAYOUTS = [
+  { id: 'side', name: 'Side by side', desc: 'Left and right' },
+  { id: 'stacked', name: 'Top and bottom', desc: 'One above the other' },
+];
+
 const $ = id => document.getElementById(id);
 const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
   set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} } };
@@ -209,6 +362,31 @@ function ago(t) {
 const clock = t => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// ---------- look and feel ----------
+function applyPrefs() {
+  const d = document.documentElement;
+  d.dataset.scheme = store.get('kindred.scheme') || 'sage';
+  d.dataset.look = store.get('kindred.look') || 'soft';
+  d.dataset.layout = store.get('kindred.layout') || 'side';
+  requestAnimationFrame(() => $('theme-color').content = getComputedStyle(document.body).backgroundColor);
+}
+function buildLove() {
+  const glyphs = ['♥', '❤', '♡'];
+  $('love').innerHTML = Array.from({ length: 14 }, (_, i) => {
+    const size = 14 + (i * 7) % 22, left = (i * 37) % 100, dur = 18 + (i * 5) % 16, delay = -((i * 3.7) % dur);
+    return `<span style="left:${left}%;font-size:${size}px;animation-duration:${dur}s;animation-delay:${delay}s">${glyphs[i % 3]}</span>`;
+  }).join('');
+}
+const HEART = '<svg viewBox="0 0 24 21"><path d="M12 21 10.3 19.4C4.2 13.9 0 10.1 0 5.5 0 2.4 2.4 0 5.5 0 7.2 0 8.9.8 10 2.1 11.1.8 12.8 0 14.5 0 17.6 0 20 2.4 20 5.5c0 4.6-4.2 8.4-10.3 13.9L12 21z" transform="translate(2 0)" fill="currentColor"/></svg>';
+function meter(m, v) {
+  const c = color(m, v);
+  const hearts = Array.from({ length: 5 }, (_, i) => {
+    const f = Math.max(0, Math.min(1, (v - i * 20) / 20));
+    return `<span style="color:var(--track)">${HEART}<span class="fill" style="width:${f * 100}%;color:${c}">${HEART}</span></span>`;
+  }).join('');
+  return `<div class="bar"><i style="width:${v}%;background:${c}"></i></div><div class="hearts" aria-hidden="true">${hearts}</div>`;
+}
+
 // ---------- name ----------
 async function showName() {
   show('s-name');
@@ -225,7 +403,7 @@ $('name-form').onsubmit = e => { e.preventDefault(); login($('name-input').value
 async function login(name) {
   $('name-err').textContent = '';
   try {
-    S = await api('login', { name });
+    S = await api('login', { name }); watch();
     me = S.me.name; store.set('kindred.name', me);
     S.partner ? renderHome() : showPartner();
   } catch (e) { $('name-err').textContent = e.message; }
@@ -250,25 +428,27 @@ $('partner-skip').onclick = () => renderHome();
 
 // ---------- home ----------
 function column(p, isMe) {
-  const name = isMe ? 'You' : (p ? esc(p.name) : 'Partner');
   if (!p) return `<div class="name">Partner</div><div class="nothing">No partner chosen yet. Tap settings to pick one.</div>`;
+  const name = isMe ? 'You' : esc(p.name);
   const e = p.latest;
-  if (!e) return `<div class="name">${name}</div><div class="when">&nbsp;</div>
+  if (!e) return `<div class="head"><div class="name">${name}</div><div class="when">&nbsp;</div></div>
     <div class="nothing">${isMe ? 'You haven’t checked in yet.' : 'Hasn’t checked in yet.'}</div>`;
-  return `<div class="name">${name}</div><div class="when">${ago(e.at)}</div>` + METRICS.map(m => `
+  const wishes = (e.wishes || []).length
+    ? `<div class="wishes"><div class="k">${isMe ? 'Your wishes' : 'Wishes'}</div>${e.wishes.map(w => `<span class="wish">${esc(w)}</span>`).join('')}</div>` : '';
+  return `<div class="head"><div class="name">${name}</div><div class="when">${ago(e.at)}</div></div><div class="metrics">` + METRICS.map(m => `
     <div class="metric">
       <div class="row"><span class="k">${m.label}</span><span class="v">${e[m.id]}</span></div>
       <div class="word">${word(m, e[m.id])}</div>
-      <div class="bar"><i style="width:${e[m.id]}%;background:${color(m, e[m.id])}"></i></div>
-    </div>`).join('');
+      ${meter(m, e[m.id])}
+    </div>`).join('') + `</div>${wishes}`;
 }
 function renderHome() {
   show('s-home');
   const stale = p => p && p.latest && Date.now() - p.latest.at > 12 * 3600e3;
   $('col-me').innerHTML = column(S.me, true);
   $('col-partner').innerHTML = column(S.partner, false);
-  $('col-me').classList.toggle('stale', stale(S.me));
-  $('col-partner').classList.toggle('stale', stale(S.partner));
+  $('col-me').classList.toggle('stale', !!stale(S.me));
+  $('col-partner').classList.toggle('stale', !!stale(S.partner));
   let note = '';
   if (S.partner && !S.partnerPicksYou) note = `${esc(S.partner.name)} hasn’t picked you yet. You’ll see each other’s levels once you’ve both picked each other.`;
   else if (stale(S.partner)) note = `${esc(S.partner.name)}’s last check-in was a while ago, so take it lightly.`;
@@ -289,6 +469,34 @@ async function refresh() {
 function openSheet(id) { $('scrim').classList.add('on'); $(id).classList.add('on'); }
 function closeSheets() { $('scrim').classList.remove('on'); document.querySelectorAll('.sheet').forEach(s => s.classList.remove('on')); }
 $('scrim').onclick = closeSheets;
+$('settings-done').onclick = closeSheets;
+$('checkin-cancel').onclick = closeSheets;
+
+// ---------- check-in ----------
+let picked = [];
+function renderWishes() {
+  const own = picked.filter(w => !Object.values(WISHES).flat().includes(w));
+  const chip = w => `<button type="button" class="chip ${picked.includes(w) ? 'sel' : ''}" data-w="${esc(w)}">${esc(w)}</button>`;
+  $('wish-body').innerHTML = Object.entries(WISHES).map(([g, list]) =>
+    `<div class="wish-group">${g}</div><div class="chips">${list.map(chip).join('')}</div>`).join('')
+    + (own.length ? `<div class="wish-group">Your own</div><div class="chips">${own.map(chip).join('')}</div>` : '')
+    + `<div class="wish-own"><input type="text" id="wish-text" maxlength="40" placeholder="Something else…"><button type="button" id="wish-add">Add</button></div>`;
+  $('wish-body').querySelectorAll('[data-w]').forEach(b => b.onclick = () => toggleWish(b.dataset.w));
+  $('wish-add').onclick = () => { const t = $('wish-text').value.trim(); if (t) toggleWish(t, true); };
+  $('wish-text').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('wish-add').click(); } };
+  $('wish-hint').textContent = picked.length
+    ? picked.join(', ') + (picked.length >= MAX_WISHES ? ' (up to 3)' : '')
+    : 'Optional. Something you’d love right now.';
+}
+function toggleWish(w, add) {
+  if (picked.includes(w)) { if (!add) picked = picked.filter(x => x !== w); }
+  else if (picked.length < MAX_WISHES) picked.push(w);
+  renderWishes();
+}
+$('wish-toggle').onclick = () => {
+  const open = $('wish-box').classList.toggle('open');
+  $('wish-plus').textContent = open ? '−' : '+';
+};
 
 function openCheckin() {
   const last = S.me.latest || {};
@@ -305,10 +513,13 @@ function openCheckin() {
     const upd = () => { const v = +r.value; $('w-' + m.id).textContent = `${word(m, v)} · ${v}`; r.style.setProperty('--c', color(m, v)); };
     r.oninput = upd; upd();
   });
+  picked = [];
+  $('wish-box').classList.remove('open'); $('wish-plus').textContent = '+';
+  renderWishes();
   openSheet('sheet-checkin');
 }
 $('checkin-save').onclick = async () => {
-  const body = { name: me };
+  const body = { name: me, wishes: picked };
   METRICS.forEach(m => body[m.id] = +$('r-' + m.id).value);
   $('checkin-save').disabled = true;
   try { S = await api('checkin', body); closeSheets(); renderHome(); }
@@ -316,8 +527,23 @@ $('checkin-save').onclick = async () => {
   $('checkin-save').disabled = false;
 };
 
+// ---------- settings ----------
+function picker(el, items, key, fallback, swatches) {
+  const cur = store.get(key) || fallback;
+  el.innerHTML = items.map(it => `<button data-id="${it.id}" class="${it.id === cur ? 'sel' : ''}">
+    ${swatches ? `<span class="sw">${it.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>` : ''}
+    ${it.name}<span class="desc">${it.desc}</span></button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => {
+    store.set(key, b.dataset.id); applyPrefs();
+    el.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b));
+    if (S) renderHome();
+  });
+}
 $('open-settings').onclick = async () => {
   $('settings-title').textContent = `Hi ${me}`;
+  picker($('pick-scheme'), SCHEMES, 'kindred.scheme', 'sage', true);
+  picker($('pick-look'), LOOKS, 'kindred.look', 'soft');
+  picker($('pick-layout'), LAYOUTS, 'kindred.layout', 'side');
   openSheet('sheet-settings');
   await partnerList($('settings-partners'), async n => { S = await api('partner', { name: me, partner: n }); watch(); closeSheets(); renderHome(); });
 };
@@ -334,6 +560,8 @@ function watch() {
   unwatch = p ? B.watch(p, () => refresh()) : () => {};
 }
 if (B.demo) document.title = 'Kindred (demo)';
+applyPrefs();
+buildLove();
 (async () => {
   if (!me) return showName();
   try { S = await api('state?name=' + encodeURIComponent(me)); watch(); S.partner ? renderHome() : showPartner(); }

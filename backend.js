@@ -92,6 +92,9 @@ export function makeApi(B) {
         if (!Number.isFinite(v) || v < 0 || v > 100) fail('Levels must be 0 to 100.', 400);
         entry[m] = v;
       }
+      // Optional wishes: up to 3 short texts.
+      const wishes = Array.isArray(body.wishes) ? body.wishes : [];
+      entry.wishes = wishes.map((w) => String(w).trim().slice(0, 40)).filter(Boolean).slice(0, 3);
       await B.addEntry(name, [...me.entries, entry].slice(-HISTORY));
       return state(name);
     }
