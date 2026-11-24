@@ -32,6 +32,7 @@ async function firebaseStore(cfg) {
     async setPartner(n, partner) { await fs.updateDoc(ref(n), { partner }); },
     async addEntry(n, entries) { await fs.updateDoc(ref(n), { entries, lastAt: fs.serverTimestamp() }); },
     async setField(n, field, value) { await fs.updateDoc(ref(n), { [field]: value }); },
+    async remove(n) { await fs.deleteDoc(ref(n)); },
     watch(n, cb) { return fs.onSnapshot(ref(n), cb, () => {}); },
   };
 }
@@ -49,6 +50,7 @@ function demoStore() {
     async setPartner(n, partner) { upd(n, (p) => { p.partner = partner; }); },
     async addEntry(n, entries) { upd(n, (p) => { p.entries = entries; p.lastAt = Date.now(); }); },
     async setField(n, field, value) { upd(n, (p) => { p[field] = value; }); },
+    async remove(n) { const d = read(); delete d[key(n)]; write(d); },
     watch() { return () => {}; },
   };
 }
@@ -120,6 +122,31 @@ export function makeApi(B) {
       const cur = me.granted && me.granted.entryAt === last.at ? me.granted.wishes : [];
       const wishes = cur.includes(body.wish) ? cur.filter((w) => w !== body.wish) : [...cur, body.wish];
       await B.setField(name, 'granted', { entryAt: last.at, wishes });
+      return state(name);
+    }
+    // ---------- dev menu ----------
+    if (p.startsWith('dev-')) {
+      const me = await B.get(name);
+      if (p === 'dev-reset-all') { for (const x of await B.list()) await B.remove(x.name); return { ok: true }; }
+      if (p === 'dev-export') return { mode: B.demo ? 'demo' : 'firebase', people: await B.list() };
+      if (!me) fail('Unknown name.', 404);
+      if (p === 'dev-reset-timer') {
+        // Move my latest check-in back 4 hours so I can check in again now.
+        const entries = me.entries.slice();
+        if (entries.length) entries[entries.length - 1] = { ...entries[entries.length - 1], at: entries[entries.length - 1].at - GAP_MS };
+        await B.setField(name, 'entries', entries);
+      }
+      if (p === 'dev-clear-me') { await B.setField(name, 'entries', []); await B.setField(name, 'seen', null); await B.setField(name, 'granted', null); }
+      if (p === 'dev-clear-social') { await B.setField(name, 'seen', null); await B.setField(name, 'granted', null); }
+      if (p === 'dev-sample') {
+        // A week of made-up check-ins, twice a day, ending 5 hours ago.
+        const now = Date.now(), H = 3600e3, r = (lo, hi) => Math.round(lo + Math.random() * (hi - lo));
+        const entries = Array.from({ length: 14 }, (_, i) => ({
+          at: now - 5 * H - (13 - i) * 12 * H,
+          sickness: r(0, 35), sleep: r(30, 90), stress: r(15, 75), affection: r(25, 90), wishes: [],
+        }));
+        await B.setField(name, 'entries', entries);
+      }
       return state(name);
     }
     fail('Not found', 404);

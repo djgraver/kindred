@@ -1,6 +1,7 @@
 rules_version = '2';
 // Kindred has no passwords, so anyone with the link can read and sign in.
-// These rules keep the data tidy and enforce one check-in per 4 hours.
+// These rules keep the data tidy. The 4 hour gap between check-ins is kept by the app
+// (not here) so the dev menu can reset the timer.
 service cloud.firestore {
   match /databases/{db}/documents {
     match /people/{id} {
@@ -27,17 +28,12 @@ service cloud.firestore {
       allow update: if request.resource.data.keys().hasOnly(['name','partner','entries','lastAt','seen','granted'])
         && request.resource.data.name == resource.data.name
         && partnerOk(request.resource.data) && extrasOk(request.resource.data)
-        && (
-          // changing partner, "seen you" or granted wishes only
-          (request.resource.data.entries == resource.data.entries && request.resource.data.lastAt == resource.data.lastAt)
-          ||
-          // adding a check-in: at most once every 4 hours
-          (request.resource.data.lastAt == request.time
-            && (resource.data.lastAt == null || request.time > resource.data.lastAt + duration.value(4, 'h'))
-            && request.resource.data.entries.size() >= 1 && request.resource.data.entries.size() <= 60
-            && levels(request.resource.data.entries[request.resource.data.entries.size() - 1]))
-        );
-      allow delete: if false;
+        && request.resource.data.entries is list && request.resource.data.entries.size() <= 60
+        && (request.resource.data.entries == resource.data.entries
+            || request.resource.data.entries.size() == 0
+            || levels(request.resource.data.entries[request.resource.data.entries.size() - 1]));
+      // The dev menu's "reset all data" deletes everyone.
+      allow delete: if true;
     }
   }
 }

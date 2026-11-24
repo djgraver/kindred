@@ -235,6 +235,15 @@ button.wish { border: 0; cursor: pointer; }
 .chart svg { display: block; width: 100%; height: auto; margin-top: 6px; overflow: visible; }
 .chart text { fill: var(--soft); font-size: 9px; font-family: inherit; }
 .install-help { color: var(--soft); font-size: 14px; margin-top: 8px; }
+.version { user-select: none; -webkit-user-select: none; cursor: default; padding: 8px; }
+.dev-info { background: var(--card); border-radius: 12px; padding: 12px; font-size: 12.5px; color: var(--soft);
+  white-space: pre-wrap; word-break: break-word; margin: 8px 0 12px; font-family: ui-monospace, Menlo, monospace; }
+.dev-list { display: grid; gap: 8px; }
+.dev-list button { text-align: left; padding: 12px 14px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); font-size: 15px; }
+.dev-list button span { display: block; color: var(--soft); font-size: 12.5px; margin-top: 2px; }
+.dev-list button.danger { color: var(--low); border-color: color-mix(in srgb, var(--low) 40%, var(--line)); }
+.dev-list button.arm { background: var(--low); color: #fff; border-color: var(--low); }
+.dev-list button.arm span { color: #fff; }
 </style>
 </head>
 <body>
@@ -314,6 +323,25 @@ button.wish { border: 0; cursor: pointer; }
   <button class="primary" id="trends-done">Done</button>
 </div></div>
 
+<!-- Dev sheet (tap the version number 3 times) -->
+<div class="sheet" id="sheet-dev"><div>
+  <div class="grab"></div>
+  <h2>Dev menu</h2>
+  <pre class="dev-info" id="dev-info"></pre>
+  <div class="dev-list">
+    <button data-dev="dev-reset-timer">Reset my check-in timer<span>Lets you check in again right now</span></button>
+    <button data-dev="dev-sample">Fill my last 7 days with sample check-ins<span>Replaces my check-ins, handy for trying trends</span></button>
+    <button data-dev="dev-clear-social">Clear "I see you" and granted wishes<span>Just mine</span></button>
+    <button data-dev="dev-clear-me" data-confirm>Clear my check-ins<span>Keeps my name and partner</span></button>
+    <button data-dev="looks">Reset colours, style and layout<span>Back to Sage, Soft, side by side</span></button>
+    <button data-dev="dev-export">Copy all data as JSON<span>Copies to the clipboard</span></button>
+    <button data-dev="reload">Reload the latest version<span>Clears the offline copy and reloads</span></button>
+    <button data-dev="dev-reset-all" data-confirm class="danger">Reset all data<span>Deletes everyone's names and check-ins</span></button>
+  </div>
+  <div class="err" id="dev-msg"></div>
+  <button class="primary" id="dev-done">Done</button>
+</div></div>
+
 <!-- Settings sheet -->
 <div class="sheet" id="sheet-settings"><div>
   <div class="grab"></div>
@@ -331,7 +359,7 @@ button.wish { border: 0; cursor: pointer; }
   <div class="install-help" id="install-help">To keep Kindred like an app: in Chrome tap ⋮ then <b>Add to Home screen</b>. On iPhone tap Share then <b>Add to Home Screen</b>. In Hermit, use its <b>Add to home screen</b> option.</div>
   <button class="primary" id="settings-done" style="margin-top:24px">Done</button>
   <button class="ghost" id="sign-out" style="margin-top:8px;width:100%">Not you? Switch name</button>
-  <div class="version">Kindred v3</div>
+  <div class="version" id="version">Kindred v4</div>
 </div></div>
 
 <script type="module">
@@ -478,12 +506,12 @@ function column(p, isMe) {
     : `<span class="wish ${granted.includes(w) ? 'granted' : ''}">${esc(w)}</span>`).join('');
   const wishes = wishList
     ? `<div class="wishes"><div class="k">${isMe ? 'Your wishes' : 'Wishes'}</div>${isMe ? '<div class="hint">Tap one when it\u2019s granted</div>' : ''}${wishList}</div>` : '';
-  // "Seen you": shown on my card when my partner has seen my latest check-in.
+  // "I see you": shown on my card when my partner has seen my latest check-in.
   let seen = '';
-  if (isMe && S.partnerPicksYou && S.partner.seen && S.partner.seen.entryAt === e.at) seen = `<div class="seen-mark">\ud83d\udc9b ${esc(S.partner.name)} saw this</div>`;
+  if (isMe && S.partnerPicksYou && S.partner.seen && S.partner.seen.entryAt === e.at) seen = `<div class="seen-mark">\u2764\ufe0f ${esc(S.partner.name)} sees you</div>`;
   if (!isMe) seen = S.me.seen && S.me.seen.entryAt === e.at
-    ? `<div class="seen-done">\ud83d\udc9b You\u2019ve seen this</div>`
-    : `<button class="seen-btn" id="seen-btn" data-at="${e.at}">Seen you \ud83d\udc9b</button>`;
+    ? `<div class="seen-done">\u2764\ufe0f You told ${esc(p.name)} you see them</div>`
+    : `<button class="seen-btn" id="seen-btn" data-at="${e.at}">I see you, ${esc(p.name)} \u2764\ufe0f</button>`;
   return `<div class="head"><div class="name">${name}</div><div class="when">${ago(e.at)}</div></div>${isMe ? seen : ''}<div class="metrics">` + METRICS.map(m => `
     <div class="metric">
       <div class="row"><span class="k">${m.label}</span><span class="v">${e[m.id]}</span></div>
@@ -619,6 +647,57 @@ let installEvt = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('install-btn').hidden = false; $('install-help').hidden = true; });
 $('install-btn').onclick = async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; $('install-btn').hidden = true; };
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+// ---------- dev menu (tap version 3 times) ----------
+let taps = [];
+$('version').onclick = () => {
+  const now = Date.now(); taps = taps.filter(t => now - t < 1500); taps.push(now);
+  if (taps.length >= 3) { taps = []; closeSheets(); openDev(); }
+};
+function openDev() {
+  $('dev-msg').textContent = '';
+  const n = S && S.me ? S.me.history.length : 0;
+  $('dev-info').textContent = [
+    `Version     v4`,
+    `Storage     ${B.demo ? 'demo (this phone only)' : 'Firebase'}`,
+    `Me          ${me || '-'}  (${n} check-ins)`,
+    `Partner     ${S && S.partner ? S.partner.name + (S.partnerPicksYou ? '' : ' (not picked you yet)') : '-'}`,
+    `Next check  ${S && S.nextCheckInAt > Date.now() ? clock(S.nextCheckInAt) : 'now'}`,
+    `Style       ${document.documentElement.dataset.scheme} / ${document.documentElement.dataset.look} / ${document.documentElement.dataset.layout}`,
+  ].join('\n');
+  document.querySelectorAll('[data-dev]').forEach(b => b.classList.remove('arm'));
+  openSheet('sheet-dev');
+}
+document.querySelectorAll('[data-dev]').forEach(b => b.onclick = async () => {
+  const what = b.dataset.dev, msg = $('dev-msg');
+  // Risky actions need a second tap.
+  if (b.hasAttribute('data-confirm') && !b.classList.contains('arm')) {
+    document.querySelectorAll('[data-dev]').forEach(x => x.classList.remove('arm'));
+    b.classList.add('arm'); msg.textContent = 'Tap it again to confirm.'; return;
+  }
+  b.classList.remove('arm');
+  try {
+    if (what === 'looks') { ['scheme', 'look', 'layout'].forEach(k => store.set('kindred.' + k, null)); applyPrefs(); msg.textContent = 'Look reset.'; }
+    else if (what === 'reload') {
+      try { (await caches.keys()).forEach(k => caches.delete(k)); (await navigator.serviceWorker.getRegistrations()).forEach(r => r.unregister()); } catch (e) {}
+      location.reload(); return;
+    }
+    else if (what === 'dev-export') {
+      const data = JSON.stringify(await api('dev-export', { name: me }), null, 2);
+      try { await navigator.clipboard.writeText(data); msg.textContent = 'Copied to the clipboard.'; }
+      catch (e) { $('dev-info').textContent = data; msg.textContent = 'Couldn\u2019t copy, so it\u2019s shown above.'; }
+      return;
+    }
+    else if (what === 'dev-reset-all') {
+      await api('dev-reset-all', { name: me });
+      store.set('kindred.name', null); me = null; S = null; closeSheets(); showName(); return;
+    }
+    else { S = await api(what, { name: me }); msg.textContent = 'Done.'; }
+    if (S) renderHome();
+    openDev(); $('dev-msg').textContent = msg.textContent || 'Done.';
+  } catch (e) { msg.textContent = e.message; }
+});
+$('dev-done').onclick = closeSheets;
 
 // ---------- settings ----------
 function picker(el, items, key, fallback, swatches) {

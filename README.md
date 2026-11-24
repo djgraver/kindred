@@ -26,7 +26,8 @@ On each phone, create a Lite App in Hermit with the Pages URL.
 - One check-in per 4 hours, enforced by the app and by the database rules.
 - The last 60 check-ins per person are kept (enough for the 7-day trends).
 - Wishes: add up to 3 to a check-in; tap your own wish when your partner grants it.
-- "Seen you": one tap on your partner's card lets them know you noticed.
+- "I see you, <name> ❤️": one tap on your partner's card lets them know you noticed.
+- Dev menu: tap the version number in settings 3 times.
 - A gentle nudge appears once it's been 8 hours since your last check-in.
 - Installable: add to your home screen for a heart icon and full-screen app.
 - Colours, style and layout are chosen per phone in settings.
