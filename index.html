@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1d2220" media="(prefers-color-scheme: dark)">
+<title>Kindred</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #f4f1ea; --card: #fbf9f5; --ink: #39403d; --soft: #7c8480; --line: #e4dfd5;
+  --track: #ebe6dc; --good: #7f9f89; --mid: #cdb68a; --low: #c98d70; --aff: #9d93bd;
+  --btn: #5f7c6b; --btn-ink: #fff; --shadow: 0 1px 2px rgba(60,55,40,.05), 0 8px 24px rgba(60,55,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1d2220; --card: #252b29; --ink: #e3e6e2; --soft: #98a09c; --line: #323a37;
+    --track: #313936; --good: #86a891; --mid: #c4ad80; --low: #c68a6e; --aff: #a69dc6;
+    --btn: #86a891; --btn-ink: #1d2220; --shadow: none; }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 16px/1.45 ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100dvh; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+main { max-width: 480px; margin: 0 auto; padding: 20px 16px 120px; }
+h1 { font-size: 26px; font-weight: 600; letter-spacing: -.01em; margin: 24px 0 4px; }
+h2 { font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+p.sub { color: var(--soft); margin: 0 0 24px; }
+.screen { display: none; animation: fade .35s ease; }
+.screen.on { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+input[type=text] { width: 100%; font: inherit; font-size: 18px; padding: 14px 16px; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink); outline: none; }
+input[type=text]:focus { border-color: var(--good); }
+button { font: inherit; cursor: pointer; border: 0; }
+.primary { width: 100%; margin-top: 14px; padding: 15px; border-radius: 14px; background: var(--btn); color: var(--btn-ink);
+  font-weight: 600; font-size: 17px; transition: opacity .2s, transform .1s; }
+.primary:active { transform: scale(.98); }
+.primary:disabled { opacity: .45; cursor: default; }
+.ghost { background: none; color: var(--soft); padding: 10px; font-size: 15px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip { padding: 9px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--ink); }
+.label { color: var(--soft); font-size: 13px; margin-top: 28px; }
+.list { display: grid; gap: 10px; }
+.list button { text-align: left; padding: 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line);
+  color: var(--ink); font-size: 17px; }
+.list button.sel { border-color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
+.empty { color: var(--soft); background: var(--card); border: 1px dashed var(--line); border-radius: 14px; padding: 18px; }
+.err { color: var(--low); min-height: 22px; margin-top: 8px; font-size: 14px; }
+
+/* home */
+.top { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 18px; }
+.top .brand { font-weight: 600; font-size: 18px; letter-spacing: .01em; }
+.icon-btn { background: none; color: var(--soft); width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; }
+.icon-btn:active { background: var(--track); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.who { background: var(--card); border-radius: 18px; padding: 14px 14px 12px; box-shadow: var(--shadow); }
+.who .name { font-weight: 600; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who .when { color: var(--soft); font-size: 12.5px; margin-bottom: 6px; }
+.who.stale .metric { opacity: .55; }
+.metric { padding: 10px 0 4px; transition: opacity .3s; }
+.metric + .metric { border-top: 1px solid var(--line); }
+.metric .row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.metric .k { font-size: 12px; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; }
+.metric .v { font-size: 13px; color: var(--soft); font-variant-numeric: tabular-nums; }
+.metric .word { font-size: 15px; margin: 1px 0 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { height: 6px; border-radius: 6px; background: var(--track); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 6px; transition: width .8s cubic-bezier(.2,.8,.2,1), background .8s; }
+.nothing { color: var(--soft); font-size: 14px; padding: 18px 0 10px; }
+.note { color: var(--soft); font-size: 13.5px; text-align: center; margin: 16px 8px 0; }
+
+.dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bg) 70%, transparent); }
+.dock > div { max-width: 448px; margin: 0 auto; }
+.dock .primary { margin: 0; }
+.wait { text-align: center; color: var(--soft); font-size: 14px; padding: 14px; border-radius: 14px; background: var(--card); }
+
+/* sheets */
+.scrim { position: fixed; inset: 0; background: rgba(20,25,22,.28); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 5; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--bg); border-radius: 22px 22px 0 0;
+  padding: 10px 16px calc(18px + env(safe-area-inset-bottom)); max-height: 92dvh; overflow: auto;
+  transform: translateY(105%); transition: transform .38s cubic-bezier(.2,.8,.2,1); }
+.sheet.on { transform: none; }
+.sheet > div { max-width: 448px; margin: 0 auto; }
+.grab { width: 38px; height: 5px; border-radius: 5px; background: var(--line); margin: 0 auto 14px; }
+.slider { background: var(--card); border-radius: 16px; padding: 14px 16px 10px; margin-bottom: 10px; }
+.slider .row { display: flex; justify-content: space-between; align-items: baseline; }
+.slider .k { font-weight: 600; }
+.slider .word { color: var(--soft); font-size: 14px; }
+.slider .ends { display: flex; justify-content: space-between; color: var(--soft); font-size: 12px; margin-top: 2px; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 36px; background: transparent; margin: 4px 0 0; }
+input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 8px; background: var(--track); }
+input[type=range]::-moz-range-track { height: 8px; border-radius: 8px; background: var(--track); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -10px; border-radius: 50%;
+  background: var(--card); border: 3px solid var(--c, var(--good)); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--card);
+  border: 3px solid var(--c, var(--good)); }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- 1. Name -->
+  <section class="screen" id="s-name">
+    <h1>Kindred</h1>
+    <p class="sub">A quiet way to know how each other is doing.</p>
+    <form id="name-form" autocomplete="off">
+      <input type="text" id="name-input" placeholder="Your first name" maxlength="30" autocapitalize="words">
+      <button class="primary" id="name-go" disabled>Continue</button>
+    </form>
+    <div class="err" id="name-err"></div>
+    <div id="known-wrap" hidden>
+      <div class="label">Been here before? Tap your name.</div>
+      <div class="chips" id="known"></div>
+    </div>
+  </section>
+
+  <!-- 2. Partner -->
+  <section class="screen" id="s-partner">
+    <h1>Who's your partner?</h1>
+    <p class="sub">They'll show up here once they've opened Kindred on their phone and typed their name.</p>
+    <div class="list" id="partners"></div>
+    <button class="ghost" id="partner-refresh" style="margin-top:10px">Refresh list</button>
+    <button class="ghost" id="partner-skip">Skip for now</button>
+  </section>
+
+  <!-- 3. Home -->
+  <section class="screen" id="s-home">
+    <div class="top">
+      <div class="brand">Kindred</div>
+      <button class="icon-btn" id="open-settings" aria-label="Settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+    <div class="cols">
+      <div class="who" id="col-me"></div>
+      <div class="who" id="col-partner"></div>
+    </div>
+    <div class="note" id="home-note"></div>
+  </section>
+
+</main>
+
+<div class="dock" id="dock" hidden><div id="dock-inner"></div></div>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- Check-in sheet -->
+<div class="sheet" id="sheet-checkin"><div>
+  <div class="grab"></div>
+  <h2>How are you right now?</h2>
+  <p class="sub" style="margin-bottom:14px">Just a rough feel. Your partner will see these.</p>
+  <div id="sliders"></div>
+  <button class="primary" id="checkin-save">Share</button>
+  <div class="err" id="checkin-err"></div>
+</div></div>
+
+<!-- Settings sheet -->
+<div class="sheet" id="sheet-settings"><div>
+  <div class="grab"></div>
+  <h2 id="settings-title">Settings</h2>
+  <div class="label" style="margin-top:14px">Partner</div>
+  <div class="list" id="settings-partners" style="margin-top:8px"></div>
+  <button class="ghost" id="sign-out" style="margin-top:18px">Not you? Switch name</button>
+</div></div>
+
+<script type="module">
+import { makeBackend, makeApi } from './backend.js';
+const B = await makeBackend();
+const api = makeApi(B);
+const METRICS = [
+  { id: 'sickness', label: 'Sickness', good: v => 100 - v, ends: ['Well', 'Very sick'], start: 10,
+    words: [[15, 'Feeling well'], [40, 'A bit off'], [70, 'Unwell'], [100, 'Very sick']] },
+  { id: 'sleep', label: 'Sleep', good: v => v, ends: ['Exhausted', 'Well rested'], start: 60,
+    words: [[25, 'Exhausted'], [50, 'Tired'], [75, 'Rested enough'], [100, 'Well rested']] },
+  { id: 'stress', label: 'Stress', good: v => 100 - v, ends: ['Calm', 'Overwhelmed'], start: 30,
+    words: [[20, 'Calm'], [45, 'A little tense'], [70, 'Stressed'], [100, 'Overwhelmed']] },
+  { id: 'affection', label: 'Affection', good: null, ends: ['Need space', 'Want closeness'], start: 50,
+    words: [[20, 'Need some space'], [45, 'Low key'], [70, 'Open to closeness'], [100, 'Wanting closeness']] },
+];
+const $ = id => document.getElementById(id);
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} } };
+let me = store.get('kindred.name');
+let S = null; // latest state
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  $('dock').hidden = id !== 's-home';
+}
+const word = (m, v) => m.words.find(([max]) => v <= max)[1];
+function color(m, v) {
+  if (!m.good) return 'var(--aff)';
+  const g = m.good(v);
+  return g >= 60 ? 'var(--good)' : g >= 35 ? 'var(--mid)' : 'var(--low)';
+}
+function ago(t) {
+  const mins = Math.round((Date.now() - t) / 60000);
+  if (mins < 2) return 'just now';
+  if (mins < 60) return mins + ' min ago';
+  const h = Math.round(mins / 60);
+  if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+  const d = Math.round(h / 24);
+  return d === 1 ? 'yesterday' : d + ' days ago';
+}
+const clock = t => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// ---------- name ----------
+async function showName() {
+  show('s-name');
+  $('name-input').value = '';
+  try {
+    const { people } = await api('people');
+    $('known-wrap').hidden = !people.length;
+    $('known').innerHTML = people.map(n => `<button class="chip">${esc(n)}</button>`).join('');
+    $('known').querySelectorAll('button').forEach(b => b.onclick = () => login(b.textContent));
+  } catch (e) {}
+}
+$('name-input').oninput = e => $('name-go').disabled = !e.target.value.trim();
+$('name-form').onsubmit = e => { e.preventDefault(); login($('name-input').value); };
+async function login(name) {
+  $('name-err').textContent = '';
+  try {
+    S = await api('login', { name });
+    me = S.me.name; store.set('kindred.name', me);
+    S.partner ? renderHome() : showPartner();
+  } catch (e) { $('name-err').textContent = e.message; }
+}
+
+// ---------- partner ----------
+async function partnerList(el, onPick) {
+  const { people } = await api('people');
+  const others = people.filter(n => n.toLowerCase() !== me.toLowerCase());
+  const current = S && S.partner ? S.partner.name : null;
+  el.innerHTML = others.length
+    ? others.map(n => `<button class="${n === current ? 'sel' : ''}">${esc(n)}</button>`).join('')
+    : `<div class="empty">Nobody else yet. Ask your partner to open Kindred on their phone and type their name, then refresh.</div>`;
+  el.querySelectorAll('button').forEach(b => b.onclick = () => onPick(b.textContent));
+}
+async function showPartner() {
+  show('s-partner');
+  await partnerList($('partners'), async n => { S = await api('partner', { name: me, partner: n }); watch(); renderHome(); });
+}
+$('partner-refresh').onclick = showPartner;
+$('partner-skip').onclick = () => renderHome();
+
+// ---------- home ----------
+function column(p, isMe) {
+  const name = isMe ? 'You' : (p ? esc(p.name) : 'Partner');
+  if (!p) return `<div class="name">Partner</div><div class="nothing">No partner chosen yet. Tap settings to pick one.</div>`;
+  const e = p.latest;
+  if (!e) return `<div class="name">${name}</div><div class="when">&nbsp;</div>
+    <div class="nothing">${isMe ? 'You haven’t checked in yet.' : 'Hasn’t checked in yet.'}</div>`;
+  return `<div class="name">${name}</div><div class="when">${ago(e.at)}</div>` + METRICS.map(m => `
+    <div class="metric">
+      <div class="row"><span class="k">${m.label}</span><span class="v">${e[m.id]}</span></div>
+      <div class="word">${word(m, e[m.id])}</div>
+      <div class="bar"><i style="width:${e[m.id]}%;background:${color(m, e[m.id])}"></i></div>
+    </div>`).join('');
+}
+function renderHome() {
+  show('s-home');
+  const stale = p => p && p.latest && Date.now() - p.latest.at > 12 * 3600e3;
+  $('col-me').innerHTML = column(S.me, true);
+  $('col-partner').innerHTML = column(S.partner, false);
+  $('col-me').classList.toggle('stale', stale(S.me));
+  $('col-partner').classList.toggle('stale', stale(S.partner));
+  let note = '';
+  if (S.partner && !S.partnerPicksYou) note = `${esc(S.partner.name)} hasn’t picked you yet. You’ll see each other’s levels once you’ve both picked each other.`;
+  else if (stale(S.partner)) note = `${esc(S.partner.name)}’s last check-in was a while ago, so take it lightly.`;
+  $('home-note').innerHTML = note;
+  const wait = S.nextCheckInAt - Date.now();
+  $('dock-inner').innerHTML = wait > 0
+    ? `<div class="wait">Next check-in from ${clock(S.nextCheckInAt)}</div>`
+    : `<button class="primary" id="open-checkin">${S.me.latest ? 'Check in' : 'Do your first check-in'}</button>`;
+  if (wait <= 0) $('open-checkin').onclick = openCheckin;
+}
+async function refresh() {
+  if (!me) return;
+  try { S = await api('state?name=' + encodeURIComponent(me)); if ($('s-home').classList.contains('on')) renderHome(); }
+  catch (e) { if (e.status === 404) { store.set('kindred.name', null); me = null; showName(); } }
+}
+
+// ---------- sheets ----------
+function openSheet(id) { $('scrim').classList.add('on'); $(id).classList.add('on'); }
+function closeSheets() { $('scrim').classList.remove('on'); document.querySelectorAll('.sheet').forEach(s => s.classList.remove('on')); }
+$('scrim').onclick = closeSheets;
+
+function openCheckin() {
+  const last = S.me.latest || {};
+  $('checkin-err').textContent = '';
+  $('sliders').innerHTML = METRICS.map(m => {
+    const v = last[m.id] ?? m.start;
+    return `<div class="slider">
+      <div class="row"><span class="k">${m.label}</span><span class="word" id="w-${m.id}"></span></div>
+      <input type="range" min="0" max="100" step="1" value="${v}" id="r-${m.id}" aria-label="${m.label}">
+      <div class="ends"><span>${m.ends[0]}</span><span>${m.ends[1]}</span></div></div>`;
+  }).join('');
+  METRICS.forEach(m => {
+    const r = $('r-' + m.id);
+    const upd = () => { const v = +r.value; $('w-' + m.id).textContent = `${word(m, v)} · ${v}`; r.style.setProperty('--c', color(m, v)); };
+    r.oninput = upd; upd();
+  });
+  openSheet('sheet-checkin');
+}
+$('checkin-save').onclick = async () => {
+  const body = { name: me };
+  METRICS.forEach(m => body[m.id] = +$('r-' + m.id).value);
+  $('checkin-save').disabled = true;
+  try { S = await api('checkin', body); closeSheets(); renderHome(); }
+  catch (e) { $('checkin-err').textContent = e.message; }
+  $('checkin-save').disabled = false;
+};
+
+$('open-settings').onclick = async () => {
+  $('settings-title').textContent = `Hi ${me}`;
+  openSheet('sheet-settings');
+  await partnerList($('settings-partners'), async n => { S = await api('partner', { name: me, partner: n }); watch(); closeSheets(); renderHome(); });
+};
+$('sign-out').onclick = () => { store.set('kindred.name', null); me = null; S = null; closeSheets(); showName(); };
+
+// ---------- start ----------
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+setInterval(refresh, 60000);
+// Live updates: refresh when my partner's document changes.
+let unwatch = () => {};
+function watch() {
+  unwatch();
+  const p = S && S.partner && S.partner.name;
+  unwatch = p ? B.watch(p, () => refresh()) : () => {};
+}
+if (B.demo) document.title = 'Kindred (demo)';
+(async () => {
+  if (!me) return showName();
+  try { S = await api('state?name=' + encodeURIComponent(me)); watch(); S.partner ? renderHome() : showPartner(); }
+  catch (e) { store.set('kindred.name', null); me = null; showName(); }
+})();
+</script>
+</body>
+</html>
