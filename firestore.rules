@@ -20,7 +20,7 @@ service cloud.firestore {
           && (!('granted' in d) || d.granted == null || (d.granted is map && d.granted.keys().hasOnly(['entryAt','wishes'])
               && d.granted.wishes is list && d.granted.wishes.size() <= 3))
           && (!('nickname' in d) || d.nickname == null || (d.nickname is map && d.nickname.keys().hasOnly(['for','text'])
-              && d.nickname.text is string && d.nickname.text.size() <= 40 && safe(d.nickname.text)));
+              && d.nickname.text is string && d.nickname.text.size() <= 40 && safe(d.nickname.text.replace('<3', ''))));
       }
       function partnerOk(d) { return d.partner == null || (d.partner is string && d.partner.size() <= 30); }
 

@@ -25,7 +25,8 @@ export function checkName(n) {
 }
 export function checkNick(n) {
   if (len(n) > NICK_MAX) return `Nicknames can be up to ${NICK_MAX} characters.`;
-  if (n && !NICK_RE.test(n)) return 'Nicknames can use letters, numbers, emoji, spaces, hyphens, apostrophes and full stops.';
+  // "<3" is allowed as a heart; it's shown as text, never as code.
+  if (n && !NICK_RE.test(n.replace(/<3/g, ''))) return 'Nicknames can use letters, numbers, emoji, <3, spaces, hyphens, apostrophes and full stops.';
   return '';
 }
 export function checkWish(w) {

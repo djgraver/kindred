@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-scheme="sage" data-look="soft" data-layout="side">
+<html lang="en" data-scheme="dusk" data-look="hearts" data-layout="stacked">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -15,18 +15,19 @@
   (function () {
     var d = document.documentElement;
     try {
-      d.dataset.scheme = localStorage.getItem('kindred.scheme') || 'sage';
-      d.dataset.look = localStorage.getItem('kindred.look') || 'soft';
-      d.dataset.layout = localStorage.getItem('kindred.layout') || 'side';
+      var sc = localStorage.getItem('kindred.scheme');
+      d.dataset.scheme = sc && sc !== 'sage' ? sc : 'dusk';
+      d.dataset.look = localStorage.getItem('kindred.look') || 'hearts';
+      d.dataset.layout = localStorage.getItem('kindred.layout') || 'stacked';
     } catch (e) {}
   })();
 </script>
 <style>
 /* ---------- colour schemes ---------- */
-:root, [data-scheme=sage] {
-  --bg: #f4f1ea; --card: #fbf9f5; --ink: #39403d; --soft: #7c8480; --line: #e4dfd5;
-  --track: #ebe6dc; --good: #7f9f89; --mid: #cdb68a; --low: #c98d70; --aff: #9d93bd;
-  --btn: #5f7c6b; --btn-ink: #fff; --shadow: 0 1px 2px rgba(60,55,40,.05), 0 8px 24px rgba(60,55,40,.06);
+[data-scheme=apricot] {
+  --bg: #faf2ea; --card: #fffaf5; --ink: #46362b; --soft: #8c7a6b; --line: #f0e0d0;
+  --track: #f3e5d7; --good: #e38b3c; --mid: #e9c36b; --low: #b35a4c; --aff: #c07a95;
+  --btn: #d9752b; --btn-ink: #fff; --shadow: 0 1px 2px rgba(120,70,30,.06), 0 8px 24px rgba(200,120,60,.10);
 }
 [data-scheme=ocean] {
   --bg: #eef3f5; --card: #f9fbfc; --ink: #2f3e46; --soft: #74858e; --line: #dbe5ea;
@@ -44,8 +45,8 @@
   --btn: #d9557a; --btn-ink: #fff; --shadow: 0 1px 2px rgba(120,40,60,.06), 0 8px 24px rgba(200,80,110,.10);
 }
 @media (prefers-color-scheme: dark) {
-  :root, [data-scheme=sage] { --bg: #1d2220; --card: #252b29; --ink: #e3e6e2; --soft: #98a09c; --line: #323a37;
-    --track: #313936; --good: #86a891; --mid: #c4ad80; --low: #c68a6e; --aff: #a69dc6; --btn: #86a891; --btn-ink: #1d2220; --shadow: none; }
+  [data-scheme=apricot] { --bg: #241a14; --card: #30231b; --ink: #f4e6da; --soft: #b8a08c; --line: #433226;
+    --track: #423125; --good: #f09a4c; --mid: #e8c36f; --low: #c9705f; --aff: #d08ea8; --btn: #f09a4c; --btn-ink: #241a14; --shadow: none; }
   [data-scheme=ocean] { --bg: #172126; --card: #1f2c32; --ink: #e1e9ec; --soft: #91a3ab; --line: #2c3b42;
     --track: #2b3a41; --good: #6fb1b2; --mid: #9db5c6; --low: #d28f80; --aff: #8c9fd1; --btn: #6fb1b2; --btn-ink: #172126; --shadow: none; }
   [data-scheme=dusk] { --bg: #1f1c24; --card: #2a2630; --ink: #e8e3ec; --soft: #a59eab; --line: #38333f;
@@ -103,8 +104,9 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 .metric .k { font-size: 12px; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; }
 .metric .v { font-size: 13px; color: var(--soft); font-variant-numeric: tabular-nums; }
 .metric .word { font-size: 15px; margin: 1px 0 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bar { height: 6px; border-radius: 6px; background: var(--track); overflow: hidden; }
-.bar i { display: block; height: 100%; border-radius: 6px; transition: width .8s cubic-bezier(.2,.8,.2,1), background .8s; }
+.segs { display: flex; gap: 4px; height: 6px; }
+.segs span { flex: 1; border-radius: 6px; background: var(--track); overflow: hidden; }
+.segs i { display: block; height: 100%; border-radius: inherit; transition: width .8s cubic-bezier(.2,.8,.2,1), background .8s; }
 .hearts { display: none; gap: 3px; }
 .hearts span { position: relative; width: 17px; height: 15px; flex: none; }
 .hearts svg { position: absolute; inset: 0; width: 17px; height: 15px; }
@@ -127,16 +129,17 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 .wait { text-align: center; color: var(--soft); font-size: 14px; padding: 14px; border-radius: 14px; background: var(--card); }
 
 /* ---------- styles (look and feel) ---------- */
-/* Minimal: flat, airy, hairline bars */
-[data-look=minimal] body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-[data-look=minimal] .who { background: transparent; box-shadow: none; border-radius: 0; padding: 6px 2px; border-top: 2px solid var(--ink); }
+/* Minimal: light and simple, but still soft and rounded */
+[data-look=minimal] .who { background: color-mix(in srgb, var(--card) 55%, transparent); box-shadow: none;
+  border: 1px solid var(--line); border-radius: 20px; }
 [data-look=minimal] .metric .k, [data-look=minimal] .wishes .k { text-transform: none; letter-spacing: 0; font-size: 13px; }
 [data-look=minimal] .metric + .metric { border-top-color: transparent; }
-[data-look=minimal] .bar { height: 3px; border-radius: 0; }
-[data-look=minimal] .bar i { border-radius: 0; }
-[data-look=minimal] .primary, [data-look=minimal] .wait, [data-look=minimal] .slider,
-[data-look=minimal] .list button, [data-look=minimal] input[type=text] { border-radius: 8px; }
+[data-look=minimal] .metric .word { font-size: 14.5px; }
+[data-look=minimal] .segs { height: 4px; }
+[data-look=minimal] .wishes { border-top-color: transparent; }
 [data-look=minimal] .wishes .wish { background: transparent; border: 1px solid var(--line); }
+[data-look=minimal] .wait, [data-look=minimal] .slider, [data-look=minimal] .wish-box, [data-look=minimal] .chart {
+  background: color-mix(in srgb, var(--card) 55%, transparent); border: 1px solid var(--line); }
 
 /* Bold: big numbers, chunky bars */
 [data-look=bold] .who { border-radius: 22px; padding: 16px; }
@@ -145,8 +148,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 [data-look=bold] .metric .k { font-weight: 600; color: var(--ink); }
 [data-look=bold] .metric .v { font-size: 26px; font-weight: 700; color: var(--ink); line-height: 1.1; }
 [data-look=bold] .metric .word { font-size: 14px; color: var(--soft); }
-[data-look=bold] .bar { height: 12px; border-radius: 12px; }
-[data-look=bold] .bar i { border-radius: 12px; }
+[data-look=bold] .segs { height: 12px; gap: 5px; }
 [data-look=bold] .primary { font-size: 18px; padding: 17px; border-radius: 18px; }
 
 /* Love hearts: heart meters, script names, drifting hearts */
@@ -158,7 +160,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 [data-look=hearts] .brand::after { content: " \2665"; color: var(--aff); font-style: normal; }
 [data-look=hearts] .who { border-radius: 26px; border: 1.5px solid color-mix(in srgb, var(--aff) 30%, transparent); position: relative; }
 [data-look=hearts] .who::after { content: "\2665"; position: absolute; top: 12px; right: 14px; color: var(--aff); opacity: .35; font-size: 16px; }
-[data-look=hearts] .bar { display: none; }
+[data-look=hearts] .segs { display: none; }
 [data-look=hearts] .hearts { display: flex; }
 [data-look=hearts] .metric .k { text-transform: none; letter-spacing: 0; font-size: 13px; }
 [data-look=hearts] .primary { border-radius: 999px; }
@@ -335,11 +337,12 @@ button.wish { border: 0; cursor: pointer; }
   <h2>Dev menu</h2>
   <pre class="dev-info" id="dev-info"></pre>
   <div class="dev-list">
+    <button data-dev="nudge">Show the reminder nudge now<span>Ignores the timer and quiet hours until you check in</span></button>
     <button data-dev="dev-reset-timer">Reset my check-in timer<span>Lets you check in again right now</span></button>
     <button data-dev="dev-sample">Fill my last month with sample check-ins<span>Replaces my check-ins, handy for trying trends</span></button>
     <button data-dev="dev-clear-social">Clear "I see you" and granted wishes<span>Just mine</span></button>
     <button data-dev="dev-clear-me" data-confirm>Clear my check-ins<span>Keeps my name and partner</span></button>
-    <button data-dev="looks">Reset colours, style and layout<span>Back to Sage, Soft, side by side</span></button>
+    <button data-dev="looks">Reset colours, style and layout<span>Back to Dusk, Love hearts, top and bottom</span></button>
     <button data-dev="dev-export">Copy all data as JSON<span>Copies to the clipboard</span></button>
     <button data-dev="reload">Reload the latest version<span>Clears the offline copy and reloads</span></button>
     <button data-dev="dev-reset-all" data-confirm class="danger">Reset all data<span>Deletes everyone's names and check-ins</span></button>
@@ -357,7 +360,7 @@ button.wish { border: 0; cursor: pointer; }
   <div id="nick-wrap" hidden>
     <div class="label" id="nick-label">Nickname</div>
     <form class="nick-row" id="nick-form" autocomplete="off">
-      <input type="text" id="nick-input" maxlength="20" placeholder="e.g. Bub \u2764\ufe0f">
+      <input type="text" id="nick-input" maxlength="20" placeholder="e.g. Hubby &lt;3">
       <button id="nick-save">Save</button>
     </form>
     <div class="small-hint" id="nick-msg">Only you see this. Leave it empty to use their name.</div>
@@ -373,7 +376,7 @@ button.wish { border: 0; cursor: pointer; }
   <div class="install-help" id="install-help">To keep Kindred like an app: in Chrome tap ⋮ then <b>Add to Home screen</b>. On iPhone tap Share then <b>Add to Home Screen</b>. In Hermit, use its <b>Add to home screen</b> option.</div>
   <button class="primary" id="settings-done" style="margin-top:24px">Done</button>
   <button class="ghost" id="sign-out" style="margin-top:8px;width:100%">Not you? Switch name</button>
-  <div class="version" id="version">Kindred v5</div>
+  <div class="version" id="version">Kindred v6</div>
 </div></div>
 
 <script type="module">
@@ -398,21 +401,25 @@ const WISHES = {
 };
 const MAX_WISHES = 3;
 const NUDGE_MS = 8 * 3600e3; // nudge after 8 hours without a check-in
+// No nudges overnight, in the phone's own time zone (9:30 pm to 7:30 am).
+const TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'local'; } catch (e) { return 'local'; } })();
+function quietHours(t = new Date()) { const m = t.getHours() * 60 + t.getMinutes(); return m >= 21 * 60 + 30 || m < 7 * 60 + 30; }
+let forceNudge = false; // set from the dev menu
 const SCHEMES = [
-  { id: 'sage', name: 'Sage', desc: 'Soft greens', sw: ['#7f9f89', '#cdb68a', '#c98d70'] },
-  { id: 'ocean', name: 'Ocean', desc: 'Cool blues', sw: ['#5f9ea0', '#a9bfcf', '#7b8fc4'] },
   { id: 'dusk', name: 'Dusk', desc: 'Lavender and amber', sw: ['#8c8fb8', '#d7a86e', '#b58bb0'] },
+  { id: 'apricot', name: 'Apricot', desc: 'Warm oranges', sw: ['#e38b3c', '#e9c36b', '#b35a4c'] },
+  { id: 'ocean', name: 'Ocean', desc: 'Cool blues', sw: ['#5f9ea0', '#a9bfcf', '#7b8fc4'] },
   { id: 'sweetheart', name: 'Sweetheart', desc: 'Pinks and roses', sw: ['#e46f8c', '#f2ad8f', '#d94a6e'] },
 ];
 const LOOKS = [
   { id: 'soft', name: 'Soft', desc: 'Rounded cards' },
-  { id: 'minimal', name: 'Minimal', desc: 'Flat and airy' },
+  { id: 'minimal', name: 'Minimal', desc: 'Light and simple' },
   { id: 'bold', name: 'Bold', desc: 'Big numbers' },
   { id: 'hearts', name: 'Love hearts', desc: 'Heart meters ♥' },
 ];
 const LAYOUTS = [
-  { id: 'side', name: 'Side by side', desc: 'Left and right' },
   { id: 'stacked', name: 'Top and bottom', desc: 'One above the other' },
+  { id: 'side', name: 'Side by side', desc: 'Left and right' },
 ];
 
 const $ = id => document.getElementById(id);
@@ -447,9 +454,10 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 // ---------- look and feel ----------
 function applyPrefs() {
   const d = document.documentElement;
-  d.dataset.scheme = store.get('kindred.scheme') || 'sage';
-  d.dataset.look = store.get('kindred.look') || 'soft';
-  d.dataset.layout = store.get('kindred.layout') || 'side';
+  const sc = store.get('kindred.scheme');
+  d.dataset.scheme = sc && sc !== 'sage' ? sc : 'dusk'; // Sage was retired in v6
+  d.dataset.look = store.get('kindred.look') || 'hearts';
+  d.dataset.layout = store.get('kindred.layout') || 'stacked';
   requestAnimationFrame(() => $('theme-color').content = getComputedStyle(document.body).backgroundColor);
 }
 function buildLove() {
@@ -466,7 +474,12 @@ function meter(m, v) {
     const f = Math.max(0, Math.min(1, (v - i * 20) / 20));
     return `<span style="color:var(--track)">${HEART}<span class="fill" style="width:${f * 100}%;color:${c}">${HEART}</span></span>`;
   }).join('');
-  return `<div class="bar"><i style="width:${v}%;background:${c}"></i></div><div class="hearts" aria-hidden="true">${hearts}</div>`;
+  // Five segments, like the five hearts, so you can feel where the level sits.
+  const segs = Array.from({ length: 5 }, (_, i) => {
+    const f = Math.max(0, Math.min(1, (v - i * 20) / 20));
+    return `<span><i style="width:${f * 100}%;background:${c}"></i></span>`;
+  }).join('');
+  return `<div class="segs" aria-hidden="true">${segs}</div><div class="hearts" aria-hidden="true">${hearts}</div>`;
 }
 
 // ---------- name ----------
@@ -528,7 +541,7 @@ function column(p, isMe) {
   if (isMe && S.partnerPicksYou && S.partner.seen && S.partner.seen.entryAt === e.at) seen = `<div class="seen-mark">\u2764\ufe0f ${esc(pn())} sees you</div>`;
   if (!isMe) seen = S.me.seen && S.me.seen.entryAt === e.at
     ? `<div class="seen-done">\u2764\ufe0f You told ${esc(pn())} you see them</div>`
-    : `<button class="seen-btn" id="seen-btn" data-at="${e.at}">I see you, ${esc(pn())}${/\p{Extended_Pictographic}\ufe0f?$/u.test(pn()) ? '' : ' \u2764\ufe0f'}</button>`;
+    : `<button class="seen-btn" id="seen-btn" data-at="${e.at}">I see you, ${esc(pn())}${/(\p{Extended_Pictographic}\ufe0f?|<3)$/u.test(pn()) ? '' : ' \u2764\ufe0f'}</button>`;
   return `<div class="head"><div class="name">${name}</div><div class="when">${ago(e.at)}</div></div>${isMe ? seen : ''}<div class="metrics">` + METRICS.map(m => `
     <div class="metric">
       <div class="row"><span class="k">${m.label}</span><span class="v">${e[m.id]}</span></div>
@@ -549,10 +562,11 @@ function renderHome() {
   $('home-note').innerHTML = note;
   const wait = S.nextCheckInAt - Date.now();
   // Gentle nudge once it's been a while since my last check-in.
-  const nudge = wait <= 0 && S.me.latest && Date.now() - S.me.latest.at > NUDGE_MS
+  const due = wait <= 0 && S.me.latest && Date.now() - S.me.latest.at > NUDGE_MS && !quietHours();
+  const nudge = forceNudge || due
     ? `<div class="nudge">It\u2019s been a little while. A quick check-in whenever you\u2019re ready.</div>` : '';
   $('checkin-area').innerHTML = wait > 0
-    ? `<div class="wait">Next check-in from ${clock(S.nextCheckInAt)}</div>`
+    ? `${nudge}<div class="wait">Next check-in from ${clock(S.nextCheckInAt)}</div>`
     : `${nudge}<button class="primary" id="open-checkin">${S.me.latest ? 'Check in' : 'Do your first check-in'}</button>`;
   document.title = (nudge ? '\u2022 ' : '') + (B.demo ? 'Kindred (demo)' : 'Kindred');
   const sb = $('seen-btn');
@@ -630,7 +644,7 @@ $('checkin-save').onclick = async () => {
   const body = { name: me, wishes: picked };
   METRICS.forEach(m => body[m.id] = +$('r-' + m.id).value);
   $('checkin-save').disabled = true;
-  try { S = await api('checkin', body); closeSheets(); renderHome(); }
+  try { S = await api('checkin', body); forceNudge = false; closeSheets(); renderHome(); }
   catch (e) { $('checkin-err').textContent = e.message; }
   $('checkin-save').disabled = false;
 };
@@ -702,7 +716,8 @@ function openDev() {
   $('dev-msg').textContent = '';
   const n = S && S.me ? S.me.history.length : 0;
   $('dev-info').textContent = [
-    `Version     v5`,
+    `Version     v6`,
+    `Time zone   ${TZ} (${clock(Date.now())}, ${quietHours() ? 'quiet hours, no nudges' : 'nudges on'})`,
     `Storage     ${B.demo ? 'demo (this phone only)' : 'Firebase'}`,
     `Me          ${me || '-'}  (${n} check-ins)`,
     `Partner     ${S && S.partner ? S.partner.name + (S.nickname ? ` ("${S.nickname}")` : '') + (S.partnerPicksYou ? '' : ' (not picked you yet)') : '-'}`,
@@ -721,6 +736,7 @@ document.querySelectorAll('[data-dev]').forEach(b => b.onclick = async () => {
   }
   b.classList.remove('arm');
   try {
+    if (what === 'nudge') { forceNudge = true; closeSheets(); renderHome(); return; }
     if (what === 'looks') { ['scheme', 'look', 'layout'].forEach(k => store.set('kindred.' + k, null)); applyPrefs(); msg.textContent = 'Look reset.'; }
     else if (what === 'reload') {
       try { (await caches.keys()).forEach(k => caches.delete(k)); (await navigator.serviceWorker.getRegistrations()).forEach(r => r.unregister()); } catch (e) {}
@@ -774,9 +790,9 @@ $('nick-form').onsubmit = async e => {
 $('open-settings').onclick = async () => {
   $('settings-title').textContent = `Hi ${me}`;
   renderNick();
-  picker($('pick-scheme'), SCHEMES, 'kindred.scheme', 'sage', true);
-  picker($('pick-look'), LOOKS, 'kindred.look', 'soft');
-  picker($('pick-layout'), LAYOUTS, 'kindred.layout', 'side');
+  picker($('pick-scheme'), SCHEMES, 'kindred.scheme', document.documentElement.dataset.scheme, true);
+  picker($('pick-look'), LOOKS, 'kindred.look', 'hearts');
+  picker($('pick-layout'), LAYOUTS, 'kindred.layout', 'stacked');
   openSheet('sheet-settings');
   await partnerList($('settings-partners'), async n => { S = await api('partner', { name: me, partner: n }); watch(); renderNick(); renderHome(); });
 };

@@ -1,6 +1,6 @@
 // Kindred service worker: lets the app be installed and open offline.
 // Network first, so new versions show up straight away; cached copy only when offline.
-const CACHE = 'kindred-v5';
+const CACHE = 'kindred-v6';
 const SHELL = ['./', 'index.html', 'backend.js', 'config.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {

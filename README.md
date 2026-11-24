@@ -33,5 +33,6 @@ On each phone, create a Lite App in Hermit with the Pages URL.
 - Dev menu: tap the version number in settings 3 times.
 - A gentle nudge appears once it's been 8 hours since your last check-in.
 - Installable: add to your home screen for a heart icon and full-screen app.
-- Colours, style and layout are chosen per phone in settings.
+- Colours, style and layout are chosen per phone in settings. Defaults: Dusk, Love hearts, top and bottom.
+- The nudge is in-app only and stays quiet from 9:30 pm to 7:30 am in the phone's own time zone.
 - Privacy note: there are no passwords, so anyone who knows the link could read the levels. Keep the link between the two of you.
