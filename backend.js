@@ -3,7 +3,7 @@
 import config from './config.js';
 
 export const GAP_MS = 4 * 60 * 60 * 1000; // one check-in per 4 hours
-const HISTORY = 12;
+const HISTORY = 60; // about 10 days at the fastest pace, enough for 7-day trends
 const key = (n) => String(n || '').trim().toLowerCase();
 export const cleanName = (n) => String(n || '').trim().replace(/\s+/g, ' ').slice(0, 30);
 
@@ -13,7 +13,11 @@ export async function makeBackend() {
   return config && config.apiKey ? firebaseStore(config) : demoStore();
 }
 
-// Each person is one document: { name, partner, entries: [{at, sickness, sleep, stress, affection}], lastAt }
+// Each person is one document:
+// { name, partner, lastAt,
+//   entries: [{ at, sickness, sleep, stress, affection, wishes }],
+//   seen:    { entryAt, at }        I saw my partner's check-in from entryAt
+//   granted: { entryAt, wishes }    wishes of my own check-in (entryAt) that my partner granted }
 async function firebaseStore(cfg) {
   const V = '10.12.2';
   const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
@@ -27,6 +31,7 @@ async function firebaseStore(cfg) {
     async create(n) { await fs.setDoc(ref(n), { name: n, partner: null, entries: [], lastAt: null }); },
     async setPartner(n, partner) { await fs.updateDoc(ref(n), { partner }); },
     async addEntry(n, entries) { await fs.updateDoc(ref(n), { entries, lastAt: fs.serverTimestamp() }); },
+    async setField(n, field, value) { await fs.updateDoc(ref(n), { [field]: value }); },
     watch(n, cb) { return fs.onSnapshot(ref(n), cb, () => {}); },
   };
 }
@@ -43,13 +48,15 @@ function demoStore() {
     async create(n) { const d = read(); d[key(n)] = { name: n, partner: null, entries: [], lastAt: null }; write(d); },
     async setPartner(n, partner) { upd(n, (p) => { p.partner = partner; }); },
     async addEntry(n, entries) { upd(n, (p) => { p.entries = entries; p.lastAt = Date.now(); }); },
+    async setField(n, field, value) { upd(n, (p) => { p[field] = value; }); },
     watch() { return () => {}; },
   };
 }
 
 // The same small API the page used to call on the server.
 export function makeApi(B) {
-  const view = (p) => p && { name: p.name, latest: p.entries[p.entries.length - 1] || null, history: p.entries };
+  const view = (p) => p && { name: p.name, latest: p.entries[p.entries.length - 1] || null, history: p.entries,
+    seen: p.seen || null, granted: p.granted || null };
   async function state(name) {
     const me = await B.get(name);
     if (!me) fail('Unknown name. Please sign in again.', 404);
@@ -59,7 +66,7 @@ export function makeApi(B) {
     return {
       me: view(me),
       // Only show a partner's levels once they have picked you back.
-      partner: partner ? (mutual ? view(partner) : { name: partner.name, latest: null, history: [] }) : null,
+      partner: partner ? (mutual ? view(partner) : { name: partner.name, latest: null, history: [], seen: null, granted: null }) : null,
       partnerPicksYou: mutual,
       nextCheckInAt: last ? last.at + GAP_MS : 0,
     };
@@ -96,6 +103,23 @@ export function makeApi(B) {
       const wishes = Array.isArray(body.wishes) ? body.wishes : [];
       entry.wishes = wishes.map((w) => String(w).trim().slice(0, 40)).filter(Boolean).slice(0, 3);
       await B.addEntry(name, [...me.entries, entry].slice(-HISTORY));
+      return state(name);
+    }
+    if (p === 'seen') {
+      // "Seen you": mark that I've seen my partner's latest check-in.
+      const at = Number(body.entryAt);
+      if (!Number.isFinite(at)) fail('Nothing to mark as seen.', 400);
+      await B.setField(name, 'seen', { entryAt: at, at: Date.now() });
+      return state(name);
+    }
+    if (p === 'grant') {
+      // Tick off one of my own wishes that my partner granted (toggle).
+      const me = await B.get(name);
+      const last = me && me.entries[me.entries.length - 1];
+      if (!last || !(last.wishes || []).includes(body.wish)) fail('That wish is no longer open.', 400);
+      const cur = me.granted && me.granted.entryAt === last.at ? me.granted.wishes : [];
+      const wishes = cur.includes(body.wish) ? cur.filter((w) => w !== body.wish) : [...cur, body.wish];
+      await B.setField(name, 'granted', { entryAt: last.at, wishes });
       return state(name);
     }
     fail('Not found', 404);

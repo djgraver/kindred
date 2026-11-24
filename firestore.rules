@@ -13,23 +13,28 @@ service cloud.firestore {
           && e.affection is int && e.affection >= 0 && e.affection <= 100;
       }
       function nameOk(d) { return d.name is string && d.name.size() > 0 && d.name.size() <= 30 && d.name.lower() == id; }
+      function extrasOk(d) {
+        return (!('seen' in d) || d.seen == null || (d.seen is map && d.seen.keys().hasOnly(['entryAt','at'])))
+          && (!('granted' in d) || d.granted == null || (d.granted is map && d.granted.keys().hasOnly(['entryAt','wishes'])
+              && d.granted.wishes is list && d.granted.wishes.size() <= 3));
+      }
       function partnerOk(d) { return d.partner == null || (d.partner is string && d.partner.size() <= 30); }
 
       allow read: if true;
       allow create: if nameOk(request.resource.data) && request.resource.data.partner == null
         && request.resource.data.entries.size() == 0 && request.resource.data.lastAt == null
-        && request.resource.data.keys().hasOnly(['name','partner','entries','lastAt']);
-      allow update: if request.resource.data.keys().hasOnly(['name','partner','entries','lastAt'])
+        && request.resource.data.keys().hasOnly(['name','partner','entries','lastAt','seen','granted']);
+      allow update: if request.resource.data.keys().hasOnly(['name','partner','entries','lastAt','seen','granted'])
         && request.resource.data.name == resource.data.name
-        && partnerOk(request.resource.data)
+        && partnerOk(request.resource.data) && extrasOk(request.resource.data)
         && (
-          // changing partner only
+          // changing partner, "seen you" or granted wishes only
           (request.resource.data.entries == resource.data.entries && request.resource.data.lastAt == resource.data.lastAt)
           ||
           // adding a check-in: at most once every 4 hours
           (request.resource.data.lastAt == request.time
             && (resource.data.lastAt == null || request.time > resource.data.lastAt + duration.value(4, 'h'))
-            && request.resource.data.entries.size() >= 1 && request.resource.data.entries.size() <= 12
+            && request.resource.data.entries.size() >= 1 && request.resource.data.entries.size() <= 60
             && levels(request.resource.data.entries[request.resource.data.entries.size() - 1]))
         );
       allow delete: if false;

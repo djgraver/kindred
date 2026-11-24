@@ -7,6 +7,9 @@
 <title>Kindred</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kindred">
 <script>
   // Apply saved look before the page paints.
   (function () {
@@ -56,7 +59,7 @@
 html, body { margin: 0; background: var(--bg); color: var(--ink); transition: background .4s, color .4s; }
 body { font: 16px/1.45 ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   min-height: 100dvh; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
-main { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 20px 16px 130px; }
+main { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 20px 16px 180px; }
 h1 { font-size: 26px; font-weight: 600; letter-spacing: -.01em; margin: 24px 0 4px; }
 h2 { font-size: 20px; font-weight: 600; margin: 0 0 6px; }
 p.sub { color: var(--soft); margin: 0 0 24px; }
@@ -156,7 +159,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 [data-look=hearts] .brand { font-size: 24px; }
 [data-look=hearts] .brand::after { content: " \2665"; color: var(--aff); font-style: normal; }
 [data-look=hearts] .who { border-radius: 26px; border: 1.5px solid color-mix(in srgb, var(--aff) 30%, transparent); position: relative; }
-[data-look=hearts] .who::after { content: "\2665"; position: absolute; bottom: 10px; right: 14px; color: var(--aff); opacity: .35; font-size: 16px; }
+[data-look=hearts] .who::after { content: "\2665"; position: absolute; top: 12px; right: 14px; color: var(--aff); opacity: .35; font-size: 16px; }
 [data-look=hearts] .bar { display: none; }
 [data-look=hearts] .hearts { display: flex; }
 [data-look=hearts] .metric .k { text-transform: none; letter-spacing: 0; font-size: 13px; }
@@ -164,6 +167,7 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 [data-look=hearts] .primary::before { content: "\2665  "; }
 #love { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; display: none; }
 [data-look=hearts] #love { display: block; }
+[data-look=hearts][data-layout=stacked] .who::after { display: none; }
 #love span { position: absolute; bottom: -40px; color: var(--aff); opacity: .13; animation: drift linear infinite; }
 @keyframes drift { to { transform: translateY(-115vh) rotate(25deg); } }
 @media (prefers-reduced-motion: reduce) { #love span { animation: none; bottom: auto; } .screen { animation: none; } }
@@ -210,6 +214,27 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 .picker .sw i { width: 16px; height: 16px; border-radius: 50%; display: block; }
 .picker .desc { display: block; color: var(--soft); font-size: 12.5px; margin-top: 2px; }
 .version { color: var(--soft); font-size: 12px; text-align: center; margin-top: 18px; }
+
+/* v3: seen you, granted wishes, nudge, trends, install */
+.seen-mark { font-size: 12.5px; color: var(--ink); background: color-mix(in srgb, var(--aff) 14%, var(--card));
+  border-radius: 999px; padding: 3px 9px; display: inline-block; margin: 2px 0 4px; animation: fade .5s ease; }
+.seen-btn { width: 100%; margin-top: 12px; padding: 10px; border-radius: 12px; font-size: 14.5px;
+  background: color-mix(in srgb, var(--aff) 14%, var(--card)); color: var(--ink); transition: transform .15s; }
+.seen-btn:active { transform: scale(.97); }
+.seen-done { margin-top: 12px; text-align: center; font-size: 13.5px; color: var(--soft); }
+.wishes .hint { font-size: 12px; color: var(--soft); margin: -2px 0 6px; }
+button.wish { border: 0; cursor: pointer; }
+.wish.granted { background: color-mix(in srgb, var(--good) 20%, var(--card)); }
+.wish.granted::before { content: "\2713  "; color: var(--good); font-weight: 700; }
+.nudge { text-align: center; color: var(--soft); font-size: 14px; margin: 0 8px 10px; animation: fade .6s ease; }
+.trends-link { display: block; margin: 14px auto 0; font-size: 14.5px; }
+.legend { display: flex; gap: 16px; font-size: 13.5px; color: var(--soft); margin: 4px 0 12px; }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
+.chart { background: var(--card); border-radius: 16px; padding: 12px 14px 8px; margin-bottom: 10px; }
+.chart .k { font-weight: 600; font-size: 15px; }
+.chart svg { display: block; width: 100%; height: auto; margin-top: 6px; overflow: visible; }
+.chart text { fill: var(--soft); font-size: 9px; font-family: inherit; }
+.install-help { color: var(--soft); font-size: 14px; margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -253,6 +278,7 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
       <div class="who" id="col-partner"></div>
     </div>
     <div class="note" id="home-note"></div>
+    <button class="ghost trends-link" id="open-trends">See the last 7 days</button>
   </section>
 
 </main>
@@ -279,6 +305,15 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
   <div class="err" id="checkin-err"></div>
 </div></div>
 
+<!-- Trends sheet -->
+<div class="sheet" id="sheet-trends"><div>
+  <div class="grab"></div>
+  <h2>The last 7 days</h2>
+  <div class="legend" id="legend"></div>
+  <div id="charts"></div>
+  <button class="primary" id="trends-done">Done</button>
+</div></div>
+
 <!-- Settings sheet -->
 <div class="sheet" id="sheet-settings"><div>
   <div class="grab"></div>
@@ -291,9 +326,12 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
   <div class="picker" id="pick-look"></div>
   <div class="label">Compare</div>
   <div class="picker" id="pick-layout"></div>
+  <div class="label">Home screen</div>
+  <button class="primary" id="install-btn" hidden style="margin-top:8px">Add Kindred to your home screen</button>
+  <div class="install-help" id="install-help">To keep Kindred like an app: in Chrome tap ⋮ then <b>Add to Home screen</b>. On iPhone tap Share then <b>Add to Home Screen</b>. In Hermit, use its <b>Add to home screen</b> option.</div>
   <button class="primary" id="settings-done" style="margin-top:24px">Done</button>
   <button class="ghost" id="sign-out" style="margin-top:8px;width:100%">Not you? Switch name</button>
-  <div class="version">Kindred v2</div>
+  <div class="version">Kindred v3</div>
 </div></div>
 
 <script type="module">
@@ -317,6 +355,7 @@ const WISHES = {
   'Together': ['🚶 A walk together', '🌳 Time outside', '🎬 A movie together', '🎲 Play a game', '🌹 Date night', '😂 Make me laugh', '🎶 Dance in the kitchen'],
 };
 const MAX_WISHES = 3;
+const NUDGE_MS = 8 * 3600e3; // nudge after 8 hours without a check-in
 const SCHEMES = [
   { id: 'sage', name: 'Sage', desc: 'Soft greens', sw: ['#7f9f89', '#cdb68a', '#c98d70'] },
   { id: 'ocean', name: 'Ocean', desc: 'Cool blues', sw: ['#5f9ea0', '#a9bfcf', '#7b8fc4'] },
@@ -433,14 +472,24 @@ function column(p, isMe) {
   const e = p.latest;
   if (!e) return `<div class="head"><div class="name">${name}</div><div class="when">&nbsp;</div></div>
     <div class="nothing">${isMe ? 'You haven’t checked in yet.' : 'Hasn’t checked in yet.'}</div>`;
-  const wishes = (e.wishes || []).length
-    ? `<div class="wishes"><div class="k">${isMe ? 'Your wishes' : 'Wishes'}</div>${e.wishes.map(w => `<span class="wish">${esc(w)}</span>`).join('')}</div>` : '';
-  return `<div class="head"><div class="name">${name}</div><div class="when">${ago(e.at)}</div></div><div class="metrics">` + METRICS.map(m => `
+  const granted = p.granted && p.granted.entryAt === e.at ? p.granted.wishes : [];
+  const wishList = (e.wishes || []).map(w => isMe
+    ? `<button class="wish ${granted.includes(w) ? 'granted' : ''}" data-grant="${esc(w)}">${esc(w)}</button>`
+    : `<span class="wish ${granted.includes(w) ? 'granted' : ''}">${esc(w)}</span>`).join('');
+  const wishes = wishList
+    ? `<div class="wishes"><div class="k">${isMe ? 'Your wishes' : 'Wishes'}</div>${isMe ? '<div class="hint">Tap one when it\u2019s granted</div>' : ''}${wishList}</div>` : '';
+  // "Seen you": shown on my card when my partner has seen my latest check-in.
+  let seen = '';
+  if (isMe && S.partnerPicksYou && S.partner.seen && S.partner.seen.entryAt === e.at) seen = `<div class="seen-mark">\ud83d\udc9b ${esc(S.partner.name)} saw this</div>`;
+  if (!isMe) seen = S.me.seen && S.me.seen.entryAt === e.at
+    ? `<div class="seen-done">\ud83d\udc9b You\u2019ve seen this</div>`
+    : `<button class="seen-btn" id="seen-btn" data-at="${e.at}">Seen you \ud83d\udc9b</button>`;
+  return `<div class="head"><div class="name">${name}</div><div class="when">${ago(e.at)}</div></div>${isMe ? seen : ''}<div class="metrics">` + METRICS.map(m => `
     <div class="metric">
       <div class="row"><span class="k">${m.label}</span><span class="v">${e[m.id]}</span></div>
       <div class="word">${word(m, e[m.id])}</div>
       ${meter(m, e[m.id])}
-    </div>`).join('') + `</div>${wishes}`;
+    </div>`).join('') + `</div>${wishes}${isMe ? '' : seen}`;
 }
 function renderHome() {
   show('s-home');
@@ -454,9 +503,19 @@ function renderHome() {
   else if (stale(S.partner)) note = `${esc(S.partner.name)}’s last check-in was a while ago, so take it lightly.`;
   $('home-note').innerHTML = note;
   const wait = S.nextCheckInAt - Date.now();
+  // Gentle nudge once it's been a while since my last check-in.
+  const nudge = wait <= 0 && S.me.latest && Date.now() - S.me.latest.at > NUDGE_MS
+    ? `<div class="nudge">It\u2019s been a little while. A quick check-in whenever you\u2019re ready.</div>` : '';
   $('dock-inner').innerHTML = wait > 0
     ? `<div class="wait">Next check-in from ${clock(S.nextCheckInAt)}</div>`
-    : `<button class="primary" id="open-checkin">${S.me.latest ? 'Check in' : 'Do your first check-in'}</button>`;
+    : `${nudge}<button class="primary" id="open-checkin">${S.me.latest ? 'Check in' : 'Do your first check-in'}</button>`;
+  document.title = (nudge ? '\u2022 ' : '') + (B.demo ? 'Kindred (demo)' : 'Kindred');
+  const sb = $('seen-btn');
+  if (sb) sb.onclick = async () => { sb.disabled = true; try { S = await api('seen', { name: me, entryAt: +sb.dataset.at }); renderHome(); } catch (e) { sb.disabled = false; } };
+  $('col-me').querySelectorAll('[data-grant]').forEach(b => b.onclick = async () => {
+    try { S = await api('grant', { name: me, wish: b.dataset.grant }); renderHome(); } catch (e) {}
+  });
+  $('open-trends').hidden = !(S.me.history.length || (S.partner && S.partner.history.length));
   if (wait <= 0) $('open-checkin').onclick = openCheckin;
 }
 async function refresh() {
@@ -526,6 +585,40 @@ $('checkin-save').onclick = async () => {
   catch (e) { $('checkin-err').textContent = e.message; }
   $('checkin-save').disabled = false;
 };
+
+// ---------- trends ----------
+function chart(m) {
+  const W = 300, H = 92, T = 6, Bt = 16, now = Date.now(), from = now - 7 * 864e5;
+  const x = t => ((t - from) / (now - from)) * W, y = v => T + (1 - v / 100) * (H - T - Bt);
+  const series = [[S.me, 'var(--btn)'], [S.partnerPicksYou ? S.partner : null, 'var(--low)']].map(([p, c]) => {
+    if (!p) return '';
+    const pts = p.history.filter(e => e.at >= from).map(e => [x(e.at), y(e[m.id])]);
+    if (!pts.length) return '';
+    return `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`
+      + pts.map(([a, b]) => `<circle cx="${a}" cy="${b}" r="2.6" fill="${c}"/>`).join('');
+  }).join('');
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now - (6 - i) * 864e5); d.setHours(12, 0, 0, 0);
+    return `<text x="${x(+d)}" y="${H - 3}" text-anchor="middle">${d.toLocaleDateString([], { weekday: 'narrow' })}</text>`;
+  }).join('');
+  const grid = [0, 50, 100].map(v => `<line x1="0" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`).join('');
+  return `<div class="chart"><div class="row" style="display:flex;justify-content:space-between"><span class="k">${m.label}</span>
+    <span class="word" style="color:var(--soft);font-size:12.5px">top: ${m.ends[1].toLowerCase()}</span></div>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${m.label} over the last 7 days">${grid}${days}${series}</svg></div>`;
+}
+$('open-trends').onclick = () => {
+  const partner = S.partnerPicksYou ? esc(S.partner.name) : null;
+  $('legend').innerHTML = `<span><i style="background:var(--btn)"></i>You</span>` + (partner ? `<span><i style="background:var(--low)"></i>${partner}</span>` : '');
+  $('charts').innerHTML = METRICS.map(chart).join('');
+  openSheet('sheet-trends');
+};
+$('trends-done').onclick = closeSheets;
+
+// ---------- install ----------
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('install-btn').hidden = false; $('install-help').hidden = true; });
+$('install-btn').onclick = async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; $('install-btn').hidden = true; };
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 // ---------- settings ----------
 function picker(el, items, key, fallback, swatches) {

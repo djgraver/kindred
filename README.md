@@ -6,6 +6,7 @@ A calm little web app for two people to share how they're feeling (sickness, sle
 - `index.html` the whole app
 - `backend.js` storage (Firestore, or a this-device-only demo mode when `config.js` is empty)
 - `config.js` your Firebase web config
+- `sw.js`, `manifest.webmanifest`, icons: install to home screen
 - `firestore.rules` database rules (one check-in per 4 hours, tidy data)
 
 ## Set up Firebase (about 5 minutes)
@@ -23,5 +24,10 @@ On each phone, create a Lite App in Hermit with the Pages URL.
 ## How it works
 - Sign in by typing a name (no password). Pick your partner from people who have signed in. You see each other once you've both picked each other.
 - One check-in per 4 hours, enforced by the app and by the database rules.
-- The last 12 check-ins per person are kept.
+- The last 60 check-ins per person are kept (enough for the 7-day trends).
+- Wishes: add up to 3 to a check-in; tap your own wish when your partner grants it.
+- "Seen you": one tap on your partner's card lets them know you noticed.
+- A gentle nudge appears once it's been 8 hours since your last check-in.
+- Installable: add to your home screen for a heart icon and full-screen app.
+- Colours, style and layout are chosen per phone in settings.
 - Privacy note: there are no passwords, so anyone who knows the link could read the levels. Keep the link between the two of you.
