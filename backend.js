@@ -3,9 +3,36 @@
 import config from './config.js';
 
 export const GAP_MS = 4 * 60 * 60 * 1000; // one check-in per 4 hours
-const HISTORY = 60; // about 10 days at the fastest pace, enough for 7-day trends
+const HISTORY = 200;   // enough for a month even at the fastest pace
+const KEEP_MS = 35 * 864e5; // trends only go back a month
 const key = (n) => String(n || '').trim().toLowerCase();
-export const cleanName = (n) => String(n || '').trim().replace(/\s+/g, ' ').slice(0, 30);
+export const cleanName = (n) => String(n || '').trim().replace(/\s+/g, ' ');
+
+// ---------- input rules ----------
+// Names: 1 to 20 letters or numbers, plus spaces, hyphens, apostrophes and full stops.
+export const NAME_MAX = 20, NICK_MAX = 20, WISH_MAX = 40;
+const NAME_RE = /^[\p{L}\p{M}\p{N}][\p{L}\p{M}\p{N} .'\u2019-]*$/u;
+// Nicknames may also have emoji.
+const NICK_RE = /^[\p{L}\p{M}\p{N}\p{Extended_Pictographic}\u200d\ufe0f .'\u2019-]+$/u;
+// Wishes may have normal punctuation, but none of the characters often used in attacks.
+const RISKY_RE = /[<>{}\[\]`\\|$;=&"\u0000-\u001f\u007f]/;
+const len = (t) => [...t].length;
+export function checkName(n) {
+  if (!n) return 'Please type a name.';
+  if (len(n) > NAME_MAX) return `Names can be up to ${NAME_MAX} characters.`;
+  if (!NAME_RE.test(n)) return 'Names can use letters, numbers, spaces, hyphens, apostrophes and full stops.';
+  return '';
+}
+export function checkNick(n) {
+  if (len(n) > NICK_MAX) return `Nicknames can be up to ${NICK_MAX} characters.`;
+  if (n && !NICK_RE.test(n)) return 'Nicknames can use letters, numbers, emoji, spaces, hyphens, apostrophes and full stops.';
+  return '';
+}
+export function checkWish(w) {
+  if (len(w) > WISH_MAX) return `Wishes can be up to ${WISH_MAX} characters.`;
+  if (RISKY_RE.test(w)) return 'Wishes can\u2019t use < > { } [ ] ` \\ | $ ; = & or ".';
+  return '';
+}
 
 function fail(msg, status, data) { const e = new Error(msg); e.status = status; e.data = data; throw e; }
 
@@ -17,7 +44,8 @@ export async function makeBackend() {
 // { name, partner, lastAt,
 //   entries: [{ at, sickness, sleep, stress, affection, wishes }],
 //   seen:    { entryAt, at }        I saw my partner's check-in from entryAt
-//   granted: { entryAt, wishes }    wishes of my own check-in (entryAt) that my partner granted }
+//   granted: { entryAt, wishes }    wishes of my own check-in (entryAt) that my partner granted
+//   nickname: { for, text }         what I call my partner (only shown in my app) }
 async function firebaseStore(cfg) {
   const V = '10.12.2';
   const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
@@ -65,8 +93,10 @@ export function makeApi(B) {
     const partner = me.partner ? await B.get(me.partner) : null;
     const mutual = !!(partner && key(partner.partner) === key(me.name));
     const last = me.entries[me.entries.length - 1];
+    const nick = me.nickname && partner && key(me.nickname.for) === key(partner.name) ? me.nickname.text : '';
     return {
       me: view(me),
+      nickname: nick,
       // Only show a partner's levels once they have picked you back.
       partner: partner ? (mutual ? view(partner) : { name: partner.name, latest: null, history: [], seen: null, granted: null }) : null,
       partnerPicksYou: mutual,
@@ -78,8 +108,11 @@ export function makeApi(B) {
     const name = cleanName(body.name || new URLSearchParams(q).get('name'));
     if (p === 'people') return { people: (await B.list()).map((x) => x.name).sort((a, b) => a.localeCompare(b)) };
     if (p === 'login') {
-      if (!name) fail('Please type a name.', 400);
-      if (!(await B.get(name))) await B.create(name);
+      if (!(await B.get(name))) {
+        const bad = checkName(name);
+        if (bad) fail(bad, 400);
+        await B.create(name);
+      }
       return state(name);
     }
     if (p === 'state') return state(name);
@@ -102,9 +135,21 @@ export function makeApi(B) {
         entry[m] = v;
       }
       // Optional wishes: up to 3 short texts.
-      const wishes = Array.isArray(body.wishes) ? body.wishes : [];
-      entry.wishes = wishes.map((w) => String(w).trim().slice(0, 40)).filter(Boolean).slice(0, 3);
-      await B.addEntry(name, [...me.entries, entry].slice(-HISTORY));
+      const wishes = (Array.isArray(body.wishes) ? body.wishes : []).map((w) => String(w).trim()).filter(Boolean).slice(0, 3);
+      for (const w of wishes) { const bad = checkWish(w); if (bad) fail(bad, 400); }
+      entry.wishes = wishes;
+      const keep = me.entries.filter((e) => Date.now() - e.at < KEEP_MS);
+      await B.addEntry(name, [...keep, entry].slice(-HISTORY));
+      return state(name);
+    }
+    if (p === 'nickname') {
+      // Only stored in my own document and only shown in my app.
+      const me = await B.get(name);
+      if (!me || !me.partner) fail('Pick your partner first.', 400);
+      const text = cleanName(body.nickname);
+      const bad = checkNick(text);
+      if (bad) fail(bad, 400);
+      await B.setField(name, 'nickname', text ? { for: me.partner, text } : null);
       return state(name);
     }
     if (p === 'seen') {
@@ -139,10 +184,10 @@ export function makeApi(B) {
       if (p === 'dev-clear-me') { await B.setField(name, 'entries', []); await B.setField(name, 'seen', null); await B.setField(name, 'granted', null); }
       if (p === 'dev-clear-social') { await B.setField(name, 'seen', null); await B.setField(name, 'granted', null); }
       if (p === 'dev-sample') {
-        // A week of made-up check-ins, twice a day, ending 5 hours ago.
+        // A month of made-up check-ins, twice a day, ending 5 hours ago.
         const now = Date.now(), H = 3600e3, r = (lo, hi) => Math.round(lo + Math.random() * (hi - lo));
-        const entries = Array.from({ length: 14 }, (_, i) => ({
-          at: now - 5 * H - (13 - i) * 12 * H,
+        const entries = Array.from({ length: 60 }, (_, i) => ({
+          at: now - 5 * H - (59 - i) * 12 * H,
           sickness: r(0, 35), sleep: r(30, 90), stress: r(15, 75), affection: r(25, 90), wishes: [],
         }));
         await B.setField(name, 'entries', entries);

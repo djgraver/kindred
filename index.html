@@ -59,7 +59,7 @@
 html, body { margin: 0; background: var(--bg); color: var(--ink); transition: background .4s, color .4s; }
 body { font: 16px/1.45 ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   min-height: 100dvh; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
-main { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 20px 16px 180px; }
+main { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 20px 16px 48px; }
 h1 { font-size: 26px; font-weight: 600; letter-spacing: -.01em; margin: 24px 0 4px; }
 h2 { font-size: 20px; font-weight: 600; margin: 0 0 6px; }
 p.sub { color: var(--soft); margin: 0 0 24px; }
@@ -122,10 +122,8 @@ button { font: inherit; cursor: pointer; border: 0; color: inherit; }
 [data-layout=stacked] .metric + .metric { border-top: 0; }
 [data-layout=stacked] .who .head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 
-.dock { position: fixed; z-index: 2; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--bg) 70%, transparent); }
-.dock > div { max-width: 448px; margin: 0 auto; }
-.dock .primary { margin: 0; }
+.checkin-area { margin-top: 18px; }
+.checkin-area .primary { margin: 0; }
 .wait { text-align: center; color: var(--soft); font-size: 14px; padding: 14px; border-radius: 14px; background: var(--card); }
 
 /* ---------- styles (look and feel) ---------- */
@@ -230,10 +228,17 @@ button.wish { border: 0; cursor: pointer; }
 .trends-link { display: block; margin: 14px auto 0; font-size: 14.5px; }
 .legend { display: flex; gap: 16px; font-size: 13.5px; color: var(--soft); margin: 4px 0 12px; }
 .legend i { display: inline-block; width: 18px; height: 3px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
+.range { display: inline-flex; background: var(--track); border-radius: 12px; padding: 3px; margin: 2px 0 12px; }
+.range button { background: none; padding: 7px 14px; border-radius: 9px; font-size: 14px; color: var(--soft); }
+.range button.sel { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 .chart { background: var(--card); border-radius: 16px; padding: 12px 14px 8px; margin-bottom: 10px; }
 .chart .k { font-weight: 600; font-size: 15px; }
 .chart svg { display: block; width: 100%; height: auto; margin-top: 6px; overflow: visible; }
 .chart text { fill: var(--soft); font-size: 9px; font-family: inherit; }
+.nick-row { display: flex; gap: 8px; margin-top: 8px; }
+.nick-row input { font-size: 16px; padding: 11px 13px; }
+.nick-row button { padding: 0 16px; border-radius: 12px; background: var(--btn); color: var(--btn-ink); font-weight: 600; flex: none; }
+.small-hint { color: var(--soft); font-size: 13px; margin-top: 6px; }
 .install-help { color: var(--soft); font-size: 14px; margin-top: 8px; }
 .version { user-select: none; -webkit-user-select: none; cursor: default; padding: 8px; }
 .dev-info { background: var(--card); border-radius: 12px; padding: 12px; font-size: 12.5px; color: var(--soft);
@@ -255,7 +260,7 @@ button.wish { border: 0; cursor: pointer; }
     <h1>Kindred</h1>
     <p class="sub">A quiet way to know how each other is doing.</p>
     <form id="name-form" autocomplete="off">
-      <input type="text" id="name-input" placeholder="Your first name" maxlength="30" autocapitalize="words">
+      <input type="text" id="name-input" placeholder="Your first name" maxlength="20" autocapitalize="words">
       <button class="primary" id="name-go" disabled>Continue</button>
     </form>
     <div class="err" id="name-err"></div>
@@ -287,12 +292,12 @@ button.wish { border: 0; cursor: pointer; }
       <div class="who" id="col-partner"></div>
     </div>
     <div class="note" id="home-note"></div>
-    <button class="ghost trends-link" id="open-trends">See the last 7 days</button>
+    <div class="checkin-area" id="checkin-area"></div>
+    <button class="ghost trends-link" id="open-trends">See trends</button>
   </section>
 
 </main>
 
-<div class="dock" id="dock" hidden><div id="dock-inner"></div></div>
 
 <div class="scrim" id="scrim"></div>
 
@@ -317,7 +322,8 @@ button.wish { border: 0; cursor: pointer; }
 <!-- Trends sheet -->
 <div class="sheet" id="sheet-trends"><div>
   <div class="grab"></div>
-  <h2>The last 7 days</h2>
+  <h2 id="trends-title">Trends</h2>
+  <div class="range" id="range"><button data-r="7">7 days</button><button data-r="30">1 month</button></div>
   <div class="legend" id="legend"></div>
   <div id="charts"></div>
   <button class="primary" id="trends-done">Done</button>
@@ -330,7 +336,7 @@ button.wish { border: 0; cursor: pointer; }
   <pre class="dev-info" id="dev-info"></pre>
   <div class="dev-list">
     <button data-dev="dev-reset-timer">Reset my check-in timer<span>Lets you check in again right now</span></button>
-    <button data-dev="dev-sample">Fill my last 7 days with sample check-ins<span>Replaces my check-ins, handy for trying trends</span></button>
+    <button data-dev="dev-sample">Fill my last month with sample check-ins<span>Replaces my check-ins, handy for trying trends</span></button>
     <button data-dev="dev-clear-social">Clear "I see you" and granted wishes<span>Just mine</span></button>
     <button data-dev="dev-clear-me" data-confirm>Clear my check-ins<span>Keeps my name and partner</span></button>
     <button data-dev="looks">Reset colours, style and layout<span>Back to Sage, Soft, side by side</span></button>
@@ -348,6 +354,14 @@ button.wish { border: 0; cursor: pointer; }
   <h2 id="settings-title">Settings</h2>
   <div class="label" style="margin-top:14px">Partner</div>
   <div class="list" id="settings-partners" style="margin-top:8px"></div>
+  <div id="nick-wrap" hidden>
+    <div class="label" id="nick-label">Nickname</div>
+    <form class="nick-row" id="nick-form" autocomplete="off">
+      <input type="text" id="nick-input" maxlength="20" placeholder="e.g. Bub \u2764\ufe0f">
+      <button id="nick-save">Save</button>
+    </form>
+    <div class="small-hint" id="nick-msg">Only you see this. Leave it empty to use their name.</div>
+  </div>
   <div class="label">Colours</div>
   <div class="picker" id="pick-scheme"></div>
   <div class="label">Style</div>
@@ -359,11 +373,11 @@ button.wish { border: 0; cursor: pointer; }
   <div class="install-help" id="install-help">To keep Kindred like an app: in Chrome tap ⋮ then <b>Add to Home screen</b>. On iPhone tap Share then <b>Add to Home Screen</b>. In Hermit, use its <b>Add to home screen</b> option.</div>
   <button class="primary" id="settings-done" style="margin-top:24px">Done</button>
   <button class="ghost" id="sign-out" style="margin-top:8px;width:100%">Not you? Switch name</button>
-  <div class="version" id="version">Kindred v4</div>
+  <div class="version" id="version">Kindred v5</div>
 </div></div>
 
 <script type="module">
-import { makeBackend, makeApi } from './backend.js';
+import { makeBackend, makeApi, checkName, checkNick, checkWish } from './backend.js';
 const B = await makeBackend();
 const api = makeApi(B);
 const METRICS = [
@@ -406,10 +420,11 @@ const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { ret
   set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} } };
 let me = store.get('kindred.name');
 let S = null; // latest state
+// What I call my partner: my nickname for them, or their name.
+const pn = () => S && S.partner ? (S.nickname || S.partner.name) : '';
 
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
-  $('dock').hidden = id !== 's-home';
 }
 const word = (m, v) => m.words.find(([max]) => v <= max)[1];
 function color(m, v) {
@@ -469,6 +484,8 @@ $('name-input').oninput = e => $('name-go').disabled = !e.target.value.trim();
 $('name-form').onsubmit = e => { e.preventDefault(); login($('name-input').value); };
 async function login(name) {
   $('name-err').textContent = '';
+  const bad = checkName(String(name).trim().replace(/\s+/g, ' '));
+  if (bad) { $('name-err').textContent = bad; return; }
   try {
     S = await api('login', { name }); watch();
     me = S.me.name; store.set('kindred.name', me);
@@ -496,7 +513,7 @@ $('partner-skip').onclick = () => renderHome();
 // ---------- home ----------
 function column(p, isMe) {
   if (!p) return `<div class="name">Partner</div><div class="nothing">No partner chosen yet. Tap settings to pick one.</div>`;
-  const name = isMe ? 'You' : esc(p.name);
+  const name = isMe ? 'You' : esc(pn());
   const e = p.latest;
   if (!e) return `<div class="head"><div class="name">${name}</div><div class="when">&nbsp;</div></div>
     <div class="nothing">${isMe ? 'You haven’t checked in yet.' : 'Hasn’t checked in yet.'}</div>`;
@@ -508,10 +525,10 @@ function column(p, isMe) {
     ? `<div class="wishes"><div class="k">${isMe ? 'Your wishes' : 'Wishes'}</div>${isMe ? '<div class="hint">Tap one when it\u2019s granted</div>' : ''}${wishList}</div>` : '';
   // "I see you": shown on my card when my partner has seen my latest check-in.
   let seen = '';
-  if (isMe && S.partnerPicksYou && S.partner.seen && S.partner.seen.entryAt === e.at) seen = `<div class="seen-mark">\u2764\ufe0f ${esc(S.partner.name)} sees you</div>`;
+  if (isMe && S.partnerPicksYou && S.partner.seen && S.partner.seen.entryAt === e.at) seen = `<div class="seen-mark">\u2764\ufe0f ${esc(pn())} sees you</div>`;
   if (!isMe) seen = S.me.seen && S.me.seen.entryAt === e.at
-    ? `<div class="seen-done">\u2764\ufe0f You told ${esc(p.name)} you see them</div>`
-    : `<button class="seen-btn" id="seen-btn" data-at="${e.at}">I see you, ${esc(p.name)} \u2764\ufe0f</button>`;
+    ? `<div class="seen-done">\u2764\ufe0f You told ${esc(pn())} you see them</div>`
+    : `<button class="seen-btn" id="seen-btn" data-at="${e.at}">I see you, ${esc(pn())}${/\p{Extended_Pictographic}\ufe0f?$/u.test(pn()) ? '' : ' \u2764\ufe0f'}</button>`;
   return `<div class="head"><div class="name">${name}</div><div class="when">${ago(e.at)}</div></div>${isMe ? seen : ''}<div class="metrics">` + METRICS.map(m => `
     <div class="metric">
       <div class="row"><span class="k">${m.label}</span><span class="v">${e[m.id]}</span></div>
@@ -527,14 +544,14 @@ function renderHome() {
   $('col-me').classList.toggle('stale', !!stale(S.me));
   $('col-partner').classList.toggle('stale', !!stale(S.partner));
   let note = '';
-  if (S.partner && !S.partnerPicksYou) note = `${esc(S.partner.name)} hasn’t picked you yet. You’ll see each other’s levels once you’ve both picked each other.`;
-  else if (stale(S.partner)) note = `${esc(S.partner.name)}’s last check-in was a while ago, so take it lightly.`;
+  if (S.partner && !S.partnerPicksYou) note = `${esc(pn())} hasn’t picked you yet. You’ll see each other’s levels once you’ve both picked each other.`;
+  else if (stale(S.partner)) note = `${esc(pn())}’s last check-in was a while ago, so take it lightly.`;
   $('home-note').innerHTML = note;
   const wait = S.nextCheckInAt - Date.now();
   // Gentle nudge once it's been a while since my last check-in.
   const nudge = wait <= 0 && S.me.latest && Date.now() - S.me.latest.at > NUDGE_MS
     ? `<div class="nudge">It\u2019s been a little while. A quick check-in whenever you\u2019re ready.</div>` : '';
-  $('dock-inner').innerHTML = wait > 0
+  $('checkin-area').innerHTML = wait > 0
     ? `<div class="wait">Next check-in from ${clock(S.nextCheckInAt)}</div>`
     : `${nudge}<button class="primary" id="open-checkin">${S.me.latest ? 'Check in' : 'Do your first check-in'}</button>`;
   document.title = (nudge ? '\u2022 ' : '') + (B.demo ? 'Kindred (demo)' : 'Kindred');
@@ -569,7 +586,11 @@ function renderWishes() {
     + (own.length ? `<div class="wish-group">Your own</div><div class="chips">${own.map(chip).join('')}</div>` : '')
     + `<div class="wish-own"><input type="text" id="wish-text" maxlength="40" placeholder="Something else…"><button type="button" id="wish-add">Add</button></div>`;
   $('wish-body').querySelectorAll('[data-w]').forEach(b => b.onclick = () => toggleWish(b.dataset.w));
-  $('wish-add').onclick = () => { const t = $('wish-text').value.trim(); if (t) toggleWish(t, true); };
+  $('wish-add').onclick = () => {
+    const t = $('wish-text').value.trim(); if (!t) return;
+    const bad = checkWish(t); $('checkin-err').textContent = bad;
+    if (!bad) toggleWish(t, true);
+  };
   $('wish-text').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('wish-add').click(); } };
   $('wish-hint').textContent = picked.length
     ? picked.join(', ') + (picked.length >= MAX_WISHES ? ' (up to 3)' : '')
@@ -615,31 +636,54 @@ $('checkin-save').onclick = async () => {
 };
 
 // ---------- trends ----------
+const RAG = { red: '#d9614c', orange: '#e8a33d', green: '#4fa36b' };
+let range = +(store.get('kindred.range') || 7);
 function chart(m) {
-  const W = 300, H = 92, T = 6, Bt = 16, now = Date.now(), from = now - 7 * 864e5;
+  const W = 300, H = 96, T = 6, Bt = 16, now = Date.now(), from = now - range * 864e5;
   const x = t => ((t - from) / (now - from)) * W, y = v => T + (1 - v / 100) * (H - T - Bt);
-  const series = [[S.me, 'var(--btn)'], [S.partnerPicksYou ? S.partner : null, 'var(--low)']].map(([p, c]) => {
+  // Colour follows how good the level is: a vertical gradient, so wherever the
+  // line sits it is green (good), orange (so-so) or red (not good).
+  // Affection isn't good or bad, so it keeps its own colour.
+  const gid = 'g-' + m.id;
+  const stops = Array.from({ length: 21 }, (_, i) => {
+    const v = 100 - i * 5, g = m.good ? m.good(v) : null;
+    const c = g == null ? 'var(--aff)' : g >= 60 ? RAG.green : g >= 35 ? RAG.orange : RAG.red;
+    return `<stop offset="${(y(v) / H).toFixed(3)}" stop-color="${c}"/>`;
+  }).join('');
+  const grad = `<defs><linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${H}">${stops}</linearGradient></defs>`;
+  const people = [[S.me, false], [S.partnerPicksYou ? S.partner : null, true]];
+  const series = people.map(([p, dashed]) => {
     if (!p) return '';
-    const pts = p.history.filter(e => e.at >= from).map(e => [x(e.at), y(e[m.id])]);
+    const pts = p.history.filter(e => e.at >= from).map(e => [x(e.at).toFixed(1), y(e[m.id]).toFixed(1)]);
     if (!pts.length) return '';
-    return `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`
-      + pts.map(([a, b]) => `<circle cx="${a}" cy="${b}" r="2.6" fill="${c}"/>`).join('');
+    const r = range > 7 ? 1.8 : 2.6;
+    return `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="url(#${gid})" stroke-width="2.2"
+        stroke-linejoin="round" stroke-linecap="round" ${dashed ? 'stroke-dasharray="5 4"' : ''}/>`
+      + pts.map(([a, b]) => dashed
+        ? `<circle cx="${a}" cy="${b}" r="${r}" fill="var(--card)" stroke="url(#${gid})" stroke-width="1.5"/>`
+        : `<circle cx="${a}" cy="${b}" r="${r}" fill="url(#${gid})"/>`).join('');
   }).join('');
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(now - (6 - i) * 864e5); d.setHours(12, 0, 0, 0);
-    return `<text x="${x(+d)}" y="${H - 3}" text-anchor="middle">${d.toLocaleDateString([], { weekday: 'narrow' })}</text>`;
-  }).join('');
+  const ticks = range > 7
+    ? Array.from({ length: 5 }, (_, i) => { const d = new Date(now - (28 - i * 7) * 864e5); d.setHours(12, 0, 0, 0);
+        return `<text x="${x(+d)}" y="${H - 3}" text-anchor="middle">${d.toLocaleDateString([], { day: 'numeric', month: 'short' })}</text>`; })
+    : Array.from({ length: 7 }, (_, i) => { const d = new Date(now - (6 - i) * 864e5); d.setHours(12, 0, 0, 0);
+        return `<text x="${x(+d)}" y="${H - 3}" text-anchor="middle">${d.toLocaleDateString([], { weekday: 'narrow' })}</text>`; });
   const grid = [0, 50, 100].map(v => `<line x1="0" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`).join('');
   return `<div class="chart"><div class="row" style="display:flex;justify-content:space-between"><span class="k">${m.label}</span>
     <span class="word" style="color:var(--soft);font-size:12.5px">top: ${m.ends[1].toLowerCase()}</span></div>
-    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${m.label} over the last 7 days">${grid}${days}${series}</svg></div>`;
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${m.label} over the last ${range > 7 ? 'month' : '7 days'}">${grad}${grid}${ticks.join('')}${series}</svg></div>`;
 }
-$('open-trends').onclick = () => {
-  const partner = S.partnerPicksYou ? esc(S.partner.name) : null;
-  $('legend').innerHTML = `<span><i style="background:var(--btn)"></i>You</span>` + (partner ? `<span><i style="background:var(--low)"></i>${partner}</span>` : '');
+function renderTrends() {
+  const partner = S.partnerPicksYou ? esc(pn()) : null;
+  $('trends-title').textContent = range > 7 ? 'The last month' : 'The last 7 days';
+  $('range').querySelectorAll('button').forEach(b => b.classList.toggle('sel', +b.dataset.r === range));
+  const line = d => `<svg width="22" height="8" style="vertical-align:middle;margin-right:6px"><line x1="1" y1="4" x2="21" y2="4" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" ${d ? 'stroke-dasharray="4 3"' : ''}/></svg>`;
+  $('legend').innerHTML = `<span>${line(false)}You</span>` + (partner ? `<span>${line(true)}${partner}</span>` : '')
+    + `<span style="margin-left:auto"><b style="color:${RAG.green}">●</b> <b style="color:${RAG.orange}">●</b> <b style="color:${RAG.red}">●</b> good to not good</span>`;
   $('charts').innerHTML = METRICS.map(chart).join('');
-  openSheet('sheet-trends');
-};
+}
+$('range').querySelectorAll('button').forEach(b => b.onclick = () => { range = +b.dataset.r; store.set('kindred.range', String(range)); renderTrends(); });
+$('open-trends').onclick = () => { renderTrends(); openSheet('sheet-trends'); };
 $('trends-done').onclick = closeSheets;
 
 // ---------- install ----------
@@ -658,10 +702,10 @@ function openDev() {
   $('dev-msg').textContent = '';
   const n = S && S.me ? S.me.history.length : 0;
   $('dev-info').textContent = [
-    `Version     v4`,
+    `Version     v5`,
     `Storage     ${B.demo ? 'demo (this phone only)' : 'Firebase'}`,
     `Me          ${me || '-'}  (${n} check-ins)`,
-    `Partner     ${S && S.partner ? S.partner.name + (S.partnerPicksYou ? '' : ' (not picked you yet)') : '-'}`,
+    `Partner     ${S && S.partner ? S.partner.name + (S.nickname ? ` ("${S.nickname}")` : '') + (S.partnerPicksYou ? '' : ' (not picked you yet)') : '-'}`,
     `Next check  ${S && S.nextCheckInAt > Date.now() ? clock(S.nextCheckInAt) : 'now'}`,
     `Style       ${document.documentElement.dataset.scheme} / ${document.documentElement.dataset.look} / ${document.documentElement.dataset.layout}`,
   ].join('\n');
@@ -711,13 +755,30 @@ function picker(el, items, key, fallback, swatches) {
     if (S) renderHome();
   });
 }
+function renderNick() {
+  const has = !!(S && S.partner);
+  $('nick-wrap').hidden = !has;
+  if (!has) return;
+  $('nick-label').textContent = `Nickname for ${S.partner.name}`;
+  $('nick-input').value = S.nickname || '';
+  $('nick-msg').textContent = 'Only you see this. Leave it empty to use their name.';
+}
+$('nick-form').onsubmit = async e => {
+  e.preventDefault();
+  const text = $('nick-input').value.trim().replace(/\s+/g, ' ');
+  const bad = checkNick(text);
+  if (bad) { $('nick-msg').textContent = bad; return; }
+  try { S = await api('nickname', { name: me, nickname: text }); renderHome(); $('nick-msg').textContent = text ? 'Saved.' : 'Cleared. Using their name.'; }
+  catch (err) { $('nick-msg').textContent = err.message; }
+};
 $('open-settings').onclick = async () => {
   $('settings-title').textContent = `Hi ${me}`;
+  renderNick();
   picker($('pick-scheme'), SCHEMES, 'kindred.scheme', 'sage', true);
   picker($('pick-look'), LOOKS, 'kindred.look', 'soft');
   picker($('pick-layout'), LAYOUTS, 'kindred.layout', 'side');
   openSheet('sheet-settings');
-  await partnerList($('settings-partners'), async n => { S = await api('partner', { name: me, partner: n }); watch(); closeSheets(); renderHome(); });
+  await partnerList($('settings-partners'), async n => { S = await api('partner', { name: me, partner: n }); watch(); renderNick(); renderHome(); });
 };
 $('sign-out').onclick = () => { store.set('kindred.name', null); me = null; S = null; closeSheets(); showName(); };
 

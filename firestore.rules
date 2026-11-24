@@ -13,22 +13,25 @@ service cloud.firestore {
           && e.stress is int && e.stress >= 0 && e.stress <= 100
           && e.affection is int && e.affection >= 0 && e.affection <= 100;
       }
-      function nameOk(d) { return d.name is string && d.name.size() > 0 && d.name.size() <= 30 && d.name.lower() == id; }
+      function safe(t) { return !t.matches('.*[<>{}`|$;=&"/].*'); }
+      function nameOk(d) { return d.name is string && d.name.size() > 0 && d.name.size() <= 20 && safe(d.name) && d.name.lower() == id; }
       function extrasOk(d) {
         return (!('seen' in d) || d.seen == null || (d.seen is map && d.seen.keys().hasOnly(['entryAt','at'])))
           && (!('granted' in d) || d.granted == null || (d.granted is map && d.granted.keys().hasOnly(['entryAt','wishes'])
-              && d.granted.wishes is list && d.granted.wishes.size() <= 3));
+              && d.granted.wishes is list && d.granted.wishes.size() <= 3))
+          && (!('nickname' in d) || d.nickname == null || (d.nickname is map && d.nickname.keys().hasOnly(['for','text'])
+              && d.nickname.text is string && d.nickname.text.size() <= 40 && safe(d.nickname.text)));
       }
       function partnerOk(d) { return d.partner == null || (d.partner is string && d.partner.size() <= 30); }
 
       allow read: if true;
       allow create: if nameOk(request.resource.data) && request.resource.data.partner == null
         && request.resource.data.entries.size() == 0 && request.resource.data.lastAt == null
-        && request.resource.data.keys().hasOnly(['name','partner','entries','lastAt','seen','granted']);
-      allow update: if request.resource.data.keys().hasOnly(['name','partner','entries','lastAt','seen','granted'])
+        && request.resource.data.keys().hasOnly(['name','partner','entries','lastAt','seen','granted','nickname']);
+      allow update: if request.resource.data.keys().hasOnly(['name','partner','entries','lastAt','seen','granted','nickname'])
         && request.resource.data.name == resource.data.name
         && partnerOk(request.resource.data) && extrasOk(request.resource.data)
-        && request.resource.data.entries is list && request.resource.data.entries.size() <= 60
+        && request.resource.data.entries is list && request.resource.data.entries.size() <= 200
         && (request.resource.data.entries == resource.data.entries
             || request.resource.data.entries.size() == 0
             || levels(request.resource.data.entries[request.resource.data.entries.size() - 1]));

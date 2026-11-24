@@ -24,7 +24,10 @@ On each phone, create a Lite App in Hermit with the Pages URL.
 ## How it works
 - Sign in by typing a name (no password). Pick your partner from people who have signed in. You see each other once you've both picked each other.
 - One check-in per 4 hours, enforced by the app and by the database rules.
-- The last 60 check-ins per person are kept (enough for the 7-day trends).
+- Check-ins from the last 35 days are kept (up to 200), for 7-day and 1-month trends.
+- Trend lines are green, orange or red depending on how good the level is. Your line is solid, your partner's is dashed.
+- Give your partner a nickname in settings. Only you see it.
+- Names: up to 20 letters, numbers, spaces, hyphens, apostrophes or full stops. Nicknames can also have emoji. Risky characters such as < > { } ` $ ; = & are rejected, and everything shown on screen is escaped.
 - Wishes: add up to 3 to a check-in; tap your own wish when your partner grants it.
 - "I see you, <name> ❤️": one tap on your partner's card lets them know you noticed.
 - Dev menu: tap the version number in settings 3 times.
