@@ -376,7 +376,7 @@ button.wish { border: 0; cursor: pointer; }
   <div class="install-help" id="install-help">To keep Kindred like an app: in Chrome tap ⋮ then <b>Add to Home screen</b>. On iPhone tap Share then <b>Add to Home Screen</b>. In Hermit, use its <b>Add to home screen</b> option.</div>
   <button class="primary" id="settings-done" style="margin-top:24px">Done</button>
   <button class="ghost" id="sign-out" style="margin-top:8px;width:100%">Not you? Switch name</button>
-  <div class="version" id="version">Kindred v6</div>
+  <div class="version" id="version">Kindred v7</div>
 </div></div>
 
 <script type="module">
@@ -716,7 +716,7 @@ function openDev() {
   $('dev-msg').textContent = '';
   const n = S && S.me ? S.me.history.length : 0;
   $('dev-info').textContent = [
-    `Version     v6`,
+    `Version     v7`,
     `Time zone   ${TZ} (${clock(Date.now())}, ${quietHours() ? 'quiet hours, no nudges' : 'nudges on'})`,
     `Storage     ${B.demo ? 'demo (this phone only)' : 'Firebase'}`,
     `Me          ${me || '-'}  (${n} check-ins)`,

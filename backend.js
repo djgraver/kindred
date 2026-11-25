@@ -48,7 +48,7 @@ export async function makeBackend() {
 //   granted: { entryAt, wishes }    wishes of my own check-in (entryAt) that my partner granted
 //   nickname: { for, text }         what I call my partner (only shown in my app) }
 async function firebaseStore(cfg) {
-  const V = '10.12.2';
+  const V = '13.4.0';
   const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
   const fs = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
   const db = fs.getFirestore(initializeApp(cfg));
